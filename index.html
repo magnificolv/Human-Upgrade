@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Human Upgrade — Izaugšanas ceļš</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="screen" id="home">
+    <div class="home-wrap">
+      <span class="eyebrow">Human Upgrade</span>
+      <div>
+        <h1 class="hero-title">Izaugšanas<br><em>ceļš</em></h1>
+      </div>
+      <div class="divider"></div>
+      <div class="card-grid" id="cardGrid"></div>
+      <p class="hero-sub">Izvēlies savu ceļu</p>
+    </div>
+  </div>
+
+  <div class="screen off" id="catScreen">
+    <div class="cat-hero">
+      <div class="cat-hero-bg" id="catHeroBg"></div>
+      <button class="back-btn" onclick="goHome()">← Atpakaļ</button>
+      <div class="cat-hero-text">
+        <div class="cat-eyebrow" id="catEyebrow"></div>
+        <h2 class="cat-title-large" id="catTitleLarge"></h2>
+        <p class="cat-desc-line" id="catDescLine"></p>
+      </div>
+    </div>
+    <div class="sub-grid" id="subGrid"></div>
+    <p class="scroll-hint">↑ vilkt uz augšu</p>
+  </div>
+
+  <script src="data/content.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

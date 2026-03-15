@@ -1,0 +1,13 @@
+Šajā mapē liec savas bildes katrai kategorijai.
+
+Ieteicamais formāts: PNG ar caurspīdīgu fonu vai JPG
+Ieteicamais izmērs: 400 × 500 px vai lielāks
+
+Piemēri:
+  spiritual.png
+  emotional.png
+  intellectual.png
+  physical.png
+
+Pēc tam atver data/content.js un norādi faila ceļu, piemēram:
+  image: "images/spiritual.png",
