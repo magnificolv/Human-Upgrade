@@ -71,7 +71,7 @@ const CATEGORIES = [
     name:  'Physical',
     sub:   'Ķermeņa iepazīšana',
     bg:    '#1c0808',
-    image: null, // Nomainī uz: 'images/physical.png'
+    image: 'images/physical.jpg',
     items: [
       { icon: '🔥', title: 'Kundalini & enerģija',    desc: 'Elpošanas prakse, kundalini joga, enerģijas pamošanās' },
       { icon: '🌹', title: 'Seksuālā pašizzināšana',  desc: 'Sava ķermeņa, vēlmju un enerģijas izpēte' },
