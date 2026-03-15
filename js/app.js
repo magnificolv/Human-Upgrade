@@ -1,7 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
 //  Human Upgrade — js/app.js
-//  Nav vajadzīgs šo failu editēt.
-//  Visu saturu mainī failā: data/content.js
+//  Zoom-in immersive transitions
 // ═══════════════════════════════════════════════════════════════
 
 // SVG illustrations — shown until you replace with real images
@@ -64,20 +63,28 @@ const SVG_ART = {
   </svg>`
 };
 
-// Build the home screen cards
+// ── State ──
+let isAnimating = false;
+let lastOpenedCard = null; // store ref for reverse animation
+
+// ── Build home screen cards ──
 function buildCards() {
   const grid = document.getElementById('cardGrid');
-  CATEGORIES.forEach(cat => {
+  CATEGORIES.forEach((cat, idx) => {
     const card = document.createElement('div');
     card.className = 'card';
-    card.style.background = cat.bg;
-    card.setAttribute('onclick', `openCat('${cat.key}')`);
+    card.style.background = cat.bg; // base fallback, texture layer overrides visually
+    card.dataset.key = cat.key;
+    card.addEventListener('click', () => openCat(cat.key, card));
 
     const artHTML = cat.image
       ? `<img class="art-img" src="${cat.image}" alt="${cat.name}">`
       : (SVG_ART[cat.key] || '');
 
     card.innerHTML = `
+      <div class="card-texture"></div>
+      <div class="card-particles"></div>
+      <div class="card-shimmer"></div>
       <div class="card-inner">
         <span class="card-label">${cat.num}</span>
         <div class="card-art">${artHTML}</div>
@@ -90,14 +97,192 @@ function buildCards() {
   });
 }
 
-// Open a category detail screen
-function openCat(key) {
-  const cat = CATEGORIES.find(c => c.key === key);
-  if (!cat) return;
+// ── ZOOM-IN IMMERSIVE OPEN — CINEMATIC ──
+function openCat(key, cardEl) {
+  if (isAnimating) return;
+  isAnimating = true;
+  lastOpenedCard = cardEl;
 
-  document.getElementById('catEyebrow').textContent    = cat.num + ' — Human Upgrade';
+  const cat = CATEGORIES.find(c => c.key === key);
+  if (!cat) { isAnimating = false; return; }
+
+  // 1. Get card position
+  const rect = cardEl.getBoundingClientRect();
+
+  // 2. Create backdrop blur
+  const backdrop = document.createElement('div');
+  backdrop.className = 'zoom-backdrop';
+  document.body.appendChild(backdrop);
+
+  // 3. Create zoom overlay at card position
+  const overlay = document.createElement('div');
+  overlay.className = 'zoom-overlay';
+  overlay.style.top = rect.top + 'px';
+  overlay.style.left = rect.left + 'px';
+  overlay.style.width = rect.width + 'px';
+  overlay.style.height = rect.height + 'px';
+  overlay.style.background = cat.bg;
+
+  // Texture gradients per category
+  const textures = {
+    spiritual:    'radial-gradient(ellipse at 30% 80%, rgba(30,80,180,0.4), transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(100,160,255,0.2), transparent 45%)',
+    emotional:    'radial-gradient(ellipse at 60% 30%, rgba(140,50,200,0.4), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(200,100,255,0.15), transparent 45%)',
+    intellectual: 'radial-gradient(ellipse at 40% 70%, rgba(30,160,80,0.35), transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(80,200,120,0.15), transparent 45%)',
+    physical:     'radial-gradient(ellipse at 50% 50%, rgba(180,40,40,0.4), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(255,100,60,0.15), transparent 45%)'
+  };
+  overlay.style.backgroundImage = textures[cat.key] || '';
+
+  // Art content inside overlay
+  const artHTML = cat.image
+    ? `<img src="${cat.image}" style="width:60%;max-width:130px;border-radius:6px;object-fit:cover;">`
+    : (SVG_ART[cat.key] || '');
+
+  // Build overlay with glow rings + particles
+  overlay.innerHTML = `
+    <div class="zoom-inner-art">${artHTML}</div>
+    <div class="zoom-glow-ring"></div>
+    <div class="zoom-glow-ring ring-2"></div>
+    <div class="zoom-particles"></div>`;
+
+  // Generate burst particles
+  const particleContainer = overlay.querySelector('.zoom-particles');
+  for (let i = 0; i < 15; i++) {
+    const zp = document.createElement('div');
+    zp.className = 'zp';
+    const size = 1 + Math.random() * 3;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 80 + Math.random() * 200;
+    const endX = Math.cos(angle) * dist;
+    const endY = Math.sin(angle) * dist;
+    zp.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:50%; left:50%;
+      --zp-end: translate(${endX}px, ${endY}px) scale(${0.2 + Math.random() * 0.5});
+      animation-delay: ${0.1 + Math.random() * 0.4}s;
+    `;
+    if (Math.random() > 0.5) zp.style.background = 'rgba(255,255,255,0.3)';
+    particleContainer.appendChild(zp);
+  }
+
+  document.body.appendChild(overlay);
+
+  // 4. Hide original card
+  cardEl.style.opacity = '0';
+
+  // 5. Prepare category content (hidden)
+  populateCatScreen(cat);
+  const catScreen = document.getElementById('catScreen');
+  catScreen.classList.remove('off');
+  catScreen.classList.remove('visible');
+  // Remove any lingering sub-card-in classes
+  catScreen.querySelectorAll('.sub-card').forEach(sc => sc.classList.remove('sub-card-in'));
+
+  // Force reflow
+  overlay.offsetHeight;
+
+  // 6. Activate backdrop
+  backdrop.classList.add('active');
+
+  // 7. Fade out home
+  document.querySelector('.home-wrap').classList.add('fading-out');
+
+  // 8. Expand overlay — slower, cinematic
+  requestAnimationFrame(() => {
+    overlay.style.top = '0px';
+    overlay.style.left = '0px';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.borderRadius = '0px';
+    overlay.classList.add('expanded');
+  });
+
+  // 9. After expansion, reveal category content
+  setTimeout(() => {
+    document.getElementById('home').classList.add('off');
+    catScreen.classList.add('visible');
+
+    // Stagger sub-cards one by one
+    const subCards = catScreen.querySelectorAll('.sub-card');
+    subCards.forEach((sc, i) => {
+      setTimeout(() => sc.classList.add('sub-card-in'), i * 180);
+    });
+
+    // Clean up overlay after everything settles
+    setTimeout(() => {
+      overlay.remove();
+      backdrop.remove();
+      isAnimating = false;
+    }, subCards.length * 180 + 600);
+
+  }, 1100); // wait for the slower zoom to finish
+}
+
+// ── REVERSE ZOOM-OUT (GO HOME) ──
+function goHome() {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  const catScreen = document.getElementById('catScreen');
+  const homeScreen = document.getElementById('home');
+  const homeWrap = document.querySelector('.home-wrap');
+
+  // 1. Fade out sub-cards in reverse, one by one
+  const subCards = [...catScreen.querySelectorAll('.sub-card')].reverse();
+  subCards.forEach((sc, i) => {
+    setTimeout(() => sc.classList.remove('sub-card-in'), i * 80);
+  });
+
+  // 2. After sub-cards gone, fade out hero text
+  const subFadeTime = subCards.length * 80 + 200;
+  setTimeout(() => {
+    catScreen.classList.remove('visible');
+  }, subFadeTime);
+
+  // 3. Switch screens
+  setTimeout(() => {
+    catScreen.classList.add('off');
+    homeScreen.classList.remove('off');
+    homeWrap.classList.add('fading-out');
+
+    // Restore card
+    if (lastOpenedCard) {
+      lastOpenedCard.style.opacity = '0';
+      lastOpenedCard.style.transform = 'scale(0.85)';
+      lastOpenedCard.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)';
+    }
+
+    // Force reflow then fade in
+    homeWrap.offsetHeight;
+    homeWrap.classList.remove('fading-out');
+    homeWrap.style.transition = 'opacity 0.6s ease';
+    homeWrap.style.opacity = '1';
+
+    requestAnimationFrame(() => {
+      if (lastOpenedCard) {
+        lastOpenedCard.style.opacity = '1';
+        lastOpenedCard.style.transform = '';
+      }
+    });
+
+    setTimeout(() => {
+      homeWrap.style.transition = '';
+      homeWrap.style.opacity = '';
+      if (lastOpenedCard) {
+        lastOpenedCard.style.transition = '';
+        lastOpenedCard.style.transform = '';
+      }
+      isAnimating = false;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }, 650);
+
+  }, subFadeTime + 450);
+}
+
+// ── Populate category screen ──
+function populateCatScreen(cat) {
+  document.getElementById('catEyebrow').textContent = cat.num + ' — Human Upgrade';
   document.getElementById('catTitleLarge').textContent = cat.name;
-  document.getElementById('catDescLine').textContent   = cat.sub;
+  document.getElementById('catDescLine').textContent = cat.sub;
   document.getElementById('catHeroBg').style.background =
     `radial-gradient(ellipse at 30% 60%, ${cat.bg}ff 0%, transparent 75%)`;
 
@@ -106,26 +291,37 @@ function openCat(key) {
   cat.items.forEach((item, i) => {
     const sc = document.createElement('div');
     sc.className = 'sub-card';
-    sc.style.background      = cat.bg + 'bb';
-    sc.style.animationDelay  = (i * 0.07) + 's';
+    sc.style.background = cat.bg + 'bb';
     sc.innerHTML = `
       <span class="sub-icon">${item.icon}</span>
       <div class="sub-title">${item.title}</div>
       <div class="sub-text">${item.desc}</div>`;
     grid.appendChild(sc);
   });
-
-  document.getElementById('home').classList.add('off');
-  document.getElementById('catScreen').classList.remove('off');
-  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-// Go back to home
-function goHome() {
-  document.getElementById('catScreen').classList.add('off');
-  document.getElementById('home').classList.remove('off');
-  window.scrollTo({ top: 0, behavior: 'instant' });
+// ── Floating particles for cards ──
+function spawnParticles() {
+  document.querySelectorAll('.card-particles').forEach(container => {
+    // Create 5-7 particles per card
+    const count = 5 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      const isGold = Math.random() > 0.6;
+      p.className = 'p' + (isGold ? ' p-gold' : '');
+      const size = 1.5 + Math.random() * 2.5;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = (10 + Math.random() * 80) + '%';
+      p.style.bottom = (-10 + Math.random() * 20) + '%';
+      p.style.animationDuration = (6 + Math.random() * 8) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      container.appendChild(p);
+    }
+  });
 }
 
-// Init
+// ── Init ──
 buildCards();
+spawnParticles();
+document.getElementById('backBtn').addEventListener('click', goHome);

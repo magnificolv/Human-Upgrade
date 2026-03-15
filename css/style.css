@@ -94,18 +94,199 @@ body::before {
 }
 
 .card:hover { transform: translateY(-10px) scale(1.03); }
-.card:hover .glow-1 { box-shadow: 0 28px 70px rgba(13,20,40,0.95),  0 0 0 0.5px rgba(200,169,110,0.3); }
-.card:hover .glow-2 { box-shadow: 0 28px 70px rgba(26,10,46,0.95),  0 0 0 0.5px rgba(200,169,110,0.3); }
-.card:hover .glow-3 { box-shadow: 0 28px 70px rgba(7,26,15,0.95),   0 0 0 0.5px rgba(200,169,110,0.3); }
-.card:hover .glow-4 { box-shadow: 0 28px 70px rgba(28,8,8,0.95),    0 0 0 0.5px rgba(200,169,110,0.3); }
+.card:hover { box-shadow: 0 28px 70px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(200,169,110,0.3); }
+
+/* ── ANIMATED CARD TEXTURES ── */
+
+/* Shared texture layer */
+.card-texture {
+  position: absolute; inset: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Animated gradient orbs */
+.card-texture::before,
+.card-texture::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(30px);
+  opacity: 0.6;
+  mix-blend-mode: screen;
+}
+
+/* Shimmer sweep on every card */
+.card-shimmer {
+  position: absolute; inset: 0; z-index: 1;
+  border-radius: 18px; overflow: hidden;
+  pointer-events: none;
+}
+.card-shimmer::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.03) 45%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.03) 55%,
+    transparent 60%
+  );
+  animation: shimmer 6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-30%) translateY(-30%) rotate(25deg); }
+  50%      { transform: translateX(30%) translateY(30%) rotate(25deg); }
+}
+
+/* ── SPIRITUAL — deep blue aurora ── */
+.card[data-key="spiritual"] .card-texture {
+  background: radial-gradient(ellipse at 30% 80%, #0a1628 0%, #0d1428 50%, #060d1e 100%);
+}
+.card[data-key="spiritual"] .card-texture::before {
+  width: 120%; height: 60%;
+  top: -10%; left: -20%;
+  background: radial-gradient(ellipse, rgba(30,80,180,0.35), rgba(20,50,120,0.15), transparent);
+  animation: auroraFloat1 8s ease-in-out infinite alternate;
+}
+.card[data-key="spiritual"] .card-texture::after {
+  width: 80%; height: 50%;
+  bottom: -5%; right: -15%;
+  background: radial-gradient(ellipse, rgba(100,160,255,0.2), rgba(200,169,110,0.1), transparent);
+  animation: auroraFloat2 10s ease-in-out infinite alternate;
+}
+
+@keyframes auroraFloat1 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  100% { transform: translate(15%, 10%) scale(1.2); opacity: 0.7; }
+}
+@keyframes auroraFloat2 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  100% { transform: translate(-10%, -8%) scale(1.15); opacity: 0.6; }
+}
+
+/* ── EMOTIONAL — purple nebula ── */
+.card[data-key="emotional"] .card-texture {
+  background: radial-gradient(ellipse at 60% 30%, #1e0a35 0%, #1a0a2e 50%, #0f0618 100%);
+}
+.card[data-key="emotional"] .card-texture::before {
+  width: 100%; height: 70%;
+  top: 10%; left: -10%;
+  background: radial-gradient(ellipse, rgba(140,50,200,0.3), rgba(80,20,140,0.15), transparent);
+  animation: nebulaSwirl1 9s ease-in-out infinite alternate;
+}
+.card[data-key="emotional"] .card-texture::after {
+  width: 90%; height: 60%;
+  bottom: -10%; right: -5%;
+  background: radial-gradient(ellipse, rgba(200,100,255,0.15), rgba(200,169,110,0.08), transparent);
+  animation: nebulaSwirl2 11s ease-in-out infinite alternate;
+}
+
+@keyframes nebulaSwirl1 {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.5; }
+  100% { transform: translate(10%, -5%) rotate(15deg) scale(1.1); opacity: 0.7; }
+}
+@keyframes nebulaSwirl2 {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.35; }
+  100% { transform: translate(-8%, 8%) rotate(-10deg) scale(1.2); opacity: 0.55; }
+}
+
+/* ── INTELLECTUAL — emerald mesh ── */
+.card[data-key="intellectual"] .card-texture {
+  background: radial-gradient(ellipse at 40% 70%, #071a0f 0%, #0a1e12 50%, #040f08 100%);
+}
+.card[data-key="intellectual"] .card-texture::before {
+  width: 110%; height: 55%;
+  top: 5%; left: -15%;
+  background: radial-gradient(ellipse, rgba(30,160,80,0.25), rgba(15,100,50,0.12), transparent);
+  animation: meshPulse1 7s ease-in-out infinite alternate;
+}
+.card[data-key="intellectual"] .card-texture::after {
+  width: 85%; height: 65%;
+  bottom: -5%; right: -10%;
+  background: radial-gradient(ellipse, rgba(80,200,120,0.15), rgba(200,169,110,0.08), transparent);
+  animation: meshPulse2 9s ease-in-out infinite alternate;
+}
+
+@keyframes meshPulse1 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.45; }
+  100% { transform: translate(8%, 12%) scale(1.15); opacity: 0.65; }
+}
+@keyframes meshPulse2 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.35; }
+  100% { transform: translate(-12%, -6%) scale(1.1); opacity: 0.5; }
+}
+
+/* ── PHYSICAL — crimson ember ── */
+.card[data-key="physical"] .card-texture {
+  background: radial-gradient(ellipse at 50% 50%, #1c0808 0%, #200a0a 50%, #120404 100%);
+}
+.card[data-key="physical"] .card-texture::before {
+  width: 100%; height: 60%;
+  top: 15%; left: -5%;
+  background: radial-gradient(ellipse, rgba(180,40,40,0.3), rgba(120,20,20,0.15), transparent);
+  animation: emberGlow1 8s ease-in-out infinite alternate;
+}
+.card[data-key="physical"] .card-texture::after {
+  width: 75%; height: 50%;
+  bottom: 0%; right: -8%;
+  background: radial-gradient(ellipse, rgba(255,100,60,0.15), rgba(200,169,110,0.1), transparent);
+  animation: emberGlow2 10s ease-in-out infinite alternate;
+}
+
+@keyframes emberGlow1 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  100% { transform: translate(-5%, -8%) scale(1.2); opacity: 0.7; }
+}
+@keyframes emberGlow2 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  100% { transform: translate(10%, 5%) scale(1.1); opacity: 0.6; }
+}
+
+/* ── FLOATING PARTICLES ── */
+.card-particles {
+  position: absolute; inset: 0;
+  z-index: 1; overflow: hidden;
+  border-radius: 18px;
+  pointer-events: none;
+}
+.card-particles .p {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  animation: particleFloat linear infinite;
+}
+
+@keyframes particleFloat {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-180px) translateX(20px) scale(0.3); opacity: 0; }
+}
+
+/* Gold accent particles */
+.card-particles .p-gold {
+  background: rgba(200,169,110,0.35);
+}
+
+/* Edge glow on hover per card theme */
+.card[data-key="spiritual"]:hover { box-shadow: 0 25px 60px rgba(20,60,150,0.4), 0 0 0 0.5px rgba(100,160,255,0.2); }
+.card[data-key="emotional"]:hover { box-shadow: 0 25px 60px rgba(80,20,120,0.4), 0 0 0 0.5px rgba(180,100,255,0.2); }
+.card[data-key="intellectual"]:hover { box-shadow: 0 25px 60px rgba(20,80,40,0.4), 0 0 0 0.5px rgba(80,200,120,0.2); }
+.card[data-key="physical"]:hover { box-shadow: 0 25px 60px rgba(120,20,20,0.4), 0 0 0 0.5px rgba(255,100,60,0.2); }
 
 /* inner inset border decoration */
 .card::after {
   content: ''; position: absolute;
   top: 10px; left: 10px; right: 10px; bottom: 10px;
   border-radius: 12px;
-  border: 0.5px solid rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.06);
   pointer-events: none;
+  z-index: 3;
 }
 
 .card-inner {
@@ -113,6 +294,7 @@ body::before {
   display: flex; flex-direction: column;
   justify-content: space-between;
   padding: 18px 16px 16px;
+  z-index: 2;
 }
 
 .card-label {
@@ -172,7 +354,129 @@ body::before {
 }
 .card:hover .card-arrow { border-color: var(--gold); color: var(--gold); }
 
-/* ── CATEGORY SCREEN ── */
+/* ══════════════════════════════════════════
+   ZOOM TRANSITION — HIGH FIDELITY
+   ══════════════════════════════════════════ */
+
+.zoom-overlay {
+  position: fixed;
+  z-index: 1000;
+  border-radius: 18px;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: width, height, top, left, border-radius;
+  transition:
+    top 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
+    left 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
+    width 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
+    height 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
+    border-radius 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Art inside overlay fades & scales */
+.zoom-overlay .zoom-inner-art {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.5s ease 0.3s, transform 1.1s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.zoom-overlay.expanded .zoom-inner-art {
+  opacity: 0;
+  transform: scale(1.8);
+  transition: opacity 0.4s ease 0.1s, transform 0.8s ease;
+}
+
+/* Central light flash */
+.zoom-overlay::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.zoom-overlay.expanded::after {
+  opacity: 1;
+  transition: opacity 0.3s ease 0.2s;
+}
+
+/* Animated expanding glow ring inside overlay */
+.zoom-glow-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(200,169,110,0.3);
+  box-shadow: 0 0 40px rgba(200,169,110,0.1), inset 0 0 40px rgba(200,169,110,0.05);
+  opacity: 0;
+  pointer-events: none;
+  transition: width 1.2s cubic-bezier(0.25,0.1,0.25,1),
+              height 1.2s cubic-bezier(0.25,0.1,0.25,1),
+              opacity 0.8s ease;
+}
+.zoom-overlay.expanded .zoom-glow-ring {
+  width: 250vmax; height: 250vmax;
+  opacity: 1;
+  border-color: rgba(200,169,110,0.08);
+}
+.zoom-glow-ring.ring-2 {
+  border-color: rgba(255,255,255,0.08);
+  transition-delay: 0.15s;
+  box-shadow: 0 0 60px rgba(255,255,255,0.03);
+}
+
+/* Floating particles inside the zoom overlay */
+.zoom-particles {
+  position: absolute; inset: 0;
+  overflow: hidden; pointer-events: none;
+}
+.zoom-particles .zp {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(200,169,110,0.4);
+  opacity: 0;
+}
+.zoom-overlay.expanded .zoom-particles .zp {
+  animation: zoomParticleBurst 1.4s ease-out forwards;
+}
+@keyframes zoomParticleBurst {
+  0%   { transform: translate(0,0) scale(0); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: var(--zp-end); opacity: 0; }
+}
+
+/* Backdrop — slower, deeper */
+.zoom-backdrop {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(6,6,12,0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: background 0.8s ease, backdrop-filter 0.8s ease, -webkit-backdrop-filter 0.8s ease;
+  pointer-events: none;
+}
+.zoom-backdrop.active {
+  background: rgba(6,6,12,0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Home screen fade-out */
+.home-wrap.fading-out {
+  transition: opacity 0.6s ease;
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════
+   CATEGORY SCREEN — CINEMATIC REVEAL
+   ══════════════════════════════════════════ */
+
+#catScreen {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+#catScreen.visible {
+  opacity: 1;
+}
+
 .cat-hero {
   position: relative;
   padding: 3.5rem 2rem 2.5rem;
@@ -191,6 +495,13 @@ body::before {
   font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
   cursor: pointer; padding: 7px 16px;
   transition: background 0.2s, color 0.2s; z-index: 2;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+#catScreen.visible .back-btn {
+  opacity: 1;
+  transform: translateX(0);
+  transition: background 0.2s, color 0.2s, opacity 0.5s ease 0.8s, transform 0.5s ease 0.8s;
 }
 .back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
@@ -199,7 +510,14 @@ body::before {
 .cat-eyebrow {
   font-weight: 200; font-size: 10px;
   letter-spacing: 5px; text-transform: uppercase;
-  color: var(--gold); opacity: 0.8; margin-bottom: 8px;
+  color: var(--gold); opacity: 0;
+  margin-bottom: 8px;
+  transform: translateY(20px);
+}
+#catScreen.visible .cat-eyebrow {
+  opacity: 0.8;
+  transform: translateY(0);
+  transition: opacity 0.6s ease 0.7s, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94) 0.7s;
 }
 
 .cat-title-large {
@@ -207,14 +525,43 @@ body::before {
   font-weight: 300;
   font-size: clamp(2.2rem, 9vw, 3.5rem);
   line-height: 1; color: #f0ead8; margin-bottom: 6px;
+  opacity: 0;
+  transform: translateY(30px);
+}
+#catScreen.visible .cat-title-large {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.7s ease 0.8s, transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94) 0.8s;
 }
 
 .cat-desc-line {
   font-size: 12px; color: rgba(255,255,255,0.28);
   letter-spacing: 2px; text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(15px);
+}
+#catScreen.visible .cat-desc-line {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease 0.95s, transform 0.6s ease 0.95s;
 }
 
-/* ── SUB-CARDS ── */
+/* Decorative line under hero */
+.cat-hero-text::after {
+  content: '';
+  display: block;
+  width: 0; height: 1px;
+  margin-top: 1.2rem;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  opacity: 0;
+}
+#catScreen.visible .cat-hero-text::after {
+  width: 60px;
+  opacity: 0.4;
+  transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 1.1s, opacity 0.5s ease 1.1s;
+}
+
+/* ── SUB-CARDS — ONE BY ONE ── */
 .sub-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 12px; padding: 1.5rem 1.5rem 3rem;
@@ -223,17 +570,21 @@ body::before {
 .sub-card {
   border-radius: 14px; padding: 18px 16px;
   border: 0.5px solid rgba(255,255,255,0.07);
-  transition: border-color 0.25s, transform 0.25s;
-  animation: fadeUp 0.45s ease backwards;
+  opacity: 0;
+  transform: translateY(40px) scale(0.88);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+/* JS applies .sub-card-in class one by one */
+.sub-card.sub-card-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s, box-shadow 0.3s;
 }
 .sub-card:hover {
   border-color: rgba(255,255,255,0.18);
-  transform: translateY(-3px);
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
 }
 
 .sub-icon { font-size: 20px; margin-bottom: 10px; display: block; opacity: 0.8; }
@@ -254,4 +605,9 @@ body::before {
   text-align: center; font-size: 10px;
   letter-spacing: 3px; color: rgba(255,255,255,0.1);
   padding-bottom: 2rem; text-transform: uppercase;
+  opacity: 0;
+}
+#catScreen.visible .scroll-hint {
+  opacity: 1;
+  transition: opacity 0.5s ease 2.2s;
 }
