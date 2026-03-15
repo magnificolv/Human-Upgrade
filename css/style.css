@@ -572,14 +572,14 @@ body::before {
   border: 0.5px solid rgba(255,255,255,0.07);
   opacity: 0;
   transform: translateY(40px) scale(0.88);
-  transition: border-color 0.3s, box-shadow 0.3s;
+  /* transition MUST be on base state so browser knows how to animate */
+  transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s, box-shadow 0.3s;
 }
 /* JS applies .sub-card-in class one by one */
 .sub-card.sub-card-in {
   opacity: 1;
   transform: translateY(0) scale(1);
-  transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s, box-shadow 0.3s;
 }
 .sub-card:hover {
   border-color: rgba(255,255,255,0.18);
