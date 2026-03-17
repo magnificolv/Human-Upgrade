@@ -501,6 +501,11 @@ body::before {
   overflow-y: auto;
   pointer-events: none;
   visibility: hidden;
+  /* Full-screen background image set by JS — no separate layer needed */
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 #catScreen.visible {
   visibility: visible;
@@ -680,6 +685,13 @@ body::before {
 }
 
 .sub-icon { font-size: 20px; margin-bottom: 10px; display: block; opacity: 0.8; }
+/* Custom image icons for sub-cards */
+.sub-icon-img {
+  width: 32px; height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+}
 
 .sub-title {
   font-family: 'Cormorant Garamond', serif;

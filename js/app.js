@@ -215,20 +215,21 @@ function openCat(key, cardEl) {
     setTimeout(() => dust.remove(), 3500);
   }, 400);
 
-  // ─── 9. After zoom, swap clone for true full-viewport background ───
+  // ─── 9. After zoom, set catScreen background and show overlay ───
   setTimeout(() => {
-    // Create full-viewport background that properly covers entire screen
+    // Set the full-screen background directly on catScreen — no z-index layering issues
     if (cat.image) {
-      const fullBg = document.createElement('div');
-      fullBg.className = 'portal-fullbg';
-      fullBg.innerHTML = `<img src="${cat.image}" alt="${cat.name}">`;
-      document.body.appendChild(fullBg);
-      activePortalClone = fullBg; // track this as the bg to remove on goHome
-      clone.remove(); // remove the scaled clone
+      catScreen.style.backgroundImage = `url('${cat.image}')`;
+    } else {
+      catScreen.style.backgroundImage = '';
+      catScreen.style.backgroundColor = cat.bg;
     }
-    // For non-image cards, keep the clone as-is (gradient fills fine)
 
-    // Show catScreen overlay on top
+    // Remove the zoom clone — catScreen now IS the background
+    clone.remove();
+    activePortalClone = null;
+
+    // Show catScreen overlay
     catScreen.classList.add('visible');
 
     // Stagger sub-cards
@@ -277,11 +278,9 @@ function goHome() {
   setTimeout(() => {
     catScreen.scrollTop = 0;
 
-    // Remove portal clone background
-    if (activePortalClone) {
-      activePortalClone.remove();
-      activePortalClone = null;
-    }
+    // Clear catScreen background
+    catScreen.style.backgroundImage = '';
+    catScreen.style.backgroundColor = '';
 
     homeScreen.classList.remove('off');
 
@@ -341,8 +340,12 @@ function populateCatScreen(cat) {
     const sc = document.createElement('div');
     sc.className = 'sub-card';
     sc.style.background = cat.bg + 'bb';
+    // Icon can be emoji OR image path (starts with "images/")
+    const iconHTML = item.icon && item.icon.startsWith('images/')
+      ? `<img class="sub-icon-img" src="${item.icon}" alt="${item.title}">`
+      : item.icon || '✨';
     sc.innerHTML = `
-      <span class="sub-icon">${item.icon}</span>
+      <span class="sub-icon">${iconHTML}</span>
       <div class="sub-title">${item.title}</div>
       <div class="sub-text">${item.desc}</div>`;
     grid.appendChild(sc);
@@ -370,7 +373,18 @@ function spawnParticles() {
   });
 }
 
+// ── Preload card images for smooth portal transitions ──
+function preloadImages() {
+  CATEGORIES.forEach(cat => {
+    if (cat.image) {
+      const img = new Image();
+      img.src = cat.image;
+    }
+  });
+}
+
 // ── Init ──
 buildCards();
 spawnParticles();
+preloadImages();
 document.getElementById('backBtn').addEventListener('click', goHome);
