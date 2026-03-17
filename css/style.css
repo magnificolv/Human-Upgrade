@@ -472,44 +472,54 @@ body::before {
 }
 
 /* ══════════════════════════════════════════
-   CATEGORY SCREEN — CINEMATIC REVEAL
+   CATEGORY SCREEN — OVERLAY ON PORTAL
    ══════════════════════════════════════════ */
 
-/* catScreen uses visibility, NOT opacity — so child sub-cards
-   can independently control their own opacity for staggered reveal */
+/* catScreen is a fixed overlay that sits ON TOP of the portal clone.
+   No screen switching — just layering content over the zoomed image. */
 #catScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1010; /* above portal clone (1000), vignette (1002), dust (1003) */
+  overflow-y: auto;
+  pointer-events: none;
   visibility: hidden;
 }
 #catScreen.visible {
   visibility: visible;
+  pointer-events: auto;
 }
 
+/* Dark gradient that covers the zoomed portal image underneath */
 .cat-hero {
   position: relative;
-  padding: 3.5rem 2rem 2.5rem;
+  padding: 3rem 2rem 1.5rem;
   overflow: hidden;
-  min-height: 35vh;
 }
 
+/* The hero bg is NOW a dark gradient that fades in over the portal clone.
+   For image cards, the portal clone IS the background — no need for separate bg image. */
 .cat-hero-bg {
   position: absolute; inset: 0; opacity: 0;
-  transition: opacity 0.8s ease 0.3s;
+  transition: opacity 1s ease;
   background-size: cover;
   background-position: center 30%;
 }
-/* Gradient overlay on hero bg image */
 .cat-hero-bg::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(to top,
-    var(--bg) 0%,
-    rgba(6,6,12,0.85) 30%,
-    rgba(6,6,12,0.4) 60%,
-    rgba(6,6,12,0.2) 100%);
+  /* Very subtle gradient — just enough for text readability, image shows through */
+  background: linear-gradient(to bottom,
+    rgba(6,6,12,0.35) 0%,
+    rgba(6,6,12,0.15) 40%,
+    rgba(6,6,12,0.05) 100%);
 }
 #catScreen.visible .cat-hero-bg {
-  opacity: 0.55;
+  opacity: 1;
 }
+
+/* Sub-grid area needs a solid dark bg since it's below the hero */
+/* (grid layout defined below in SUB-CARDS section) */
 
 .back-btn {
   position: absolute; top: 1.5rem; left: 1.5rem;
@@ -520,10 +530,12 @@ body::before {
   font-family: 'Jost', sans-serif;
   font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
   cursor: pointer; padding: 7px 16px;
-  transition: background 0.2s, color 0.2s; z-index: 2;
+  z-index: 2;
   opacity: 0;
   transform: translateX(-20px);
   transition: background 0.2s, color 0.2s, opacity 0.5s ease, transform 0.5s ease;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 #catScreen.visible .back-btn {
   opacity: 1;
@@ -532,7 +544,10 @@ body::before {
 }
 .back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
-.cat-hero-text { padding-top: 3rem; position: relative; z-index: 1; }
+.cat-hero-text {
+  padding-top: 2rem; position: relative; z-index: 1;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5);
+}
 
 .cat-eyebrow {
   font-weight: 200; font-size: 10px;
@@ -595,6 +610,9 @@ body::before {
 .sub-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 12px; padding: 1.5rem 1.5rem 3rem;
+  /* NO solid background — portal clone image shows through */
+  position: relative;
+  z-index: 1;
 }
 
 .sub-card {
@@ -602,14 +620,41 @@ body::before {
   border: 0.5px solid rgba(255,255,255,0.07);
   opacity: 0;
   transform: translateY(40px) scale(0.88);
-  /* transition MUST be on base state so browser knows how to animate */
-  transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
-/* JS applies .sub-card-in class one by one */
+
+/* @keyframes animation — always plays reliably, unlike transitions */
+@keyframes subCardReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.88);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* JS sets --reveal-delay per card and adds .sub-card-in */
 .sub-card.sub-card-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+  animation: subCardReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0s);
+}
+
+/* Reverse: JS adds .sub-card-out for exit animation */
+@keyframes subCardExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.92);
+  }
+}
+.sub-card.sub-card-out {
+  animation: subCardExit 0.35s ease-in forwards;
+  animation-delay: var(--exit-delay, 0s);
 }
 .sub-card:hover {
   border-color: rgba(255,255,255,0.18);

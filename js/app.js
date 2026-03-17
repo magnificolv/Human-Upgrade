@@ -65,7 +65,8 @@ const SVG_ART = {
 
 // ── State ──
 let isAnimating = false;
-let lastOpenedCard = null; // store ref for reverse animation
+let lastOpenedCard = null;
+let activePortalClone = null; // keep clone as bg until going home
 
 // ── Build home screen cards ──
 function buildCards() {
@@ -144,6 +145,7 @@ function openCat(key, cardEl) {
   }
 
   document.body.appendChild(clone);
+  activePortalClone = clone; // save reference
 
   // ─── 3. Calculate FLIP transform ───
   // We want the clone to fill the viewport
@@ -156,12 +158,15 @@ function openCat(key, cardEl) {
   // ─── 4. Hide original card ───
   cardEl.style.opacity = '0';
 
-  // ─── 5. Prepare category content ───
+  // ─── 5. Prepare category content (overlay is hidden via visibility) ───
   populateCatScreen(cat);
   const catScreen = document.getElementById('catScreen');
-  catScreen.classList.remove('off');
   catScreen.classList.remove('visible');
-  catScreen.querySelectorAll('.sub-card').forEach(sc => sc.classList.remove('sub-card-in'));
+  catScreen.scrollTop = 0;
+  catScreen.querySelectorAll('.sub-card').forEach(sc => {
+    sc.classList.remove('sub-card-in');
+    sc.classList.remove('sub-card-out');
+  });
 
   // Force reflow
   clone.offsetHeight;
@@ -212,39 +217,34 @@ function openCat(key, cardEl) {
     setTimeout(() => dust.remove(), 3500);
   }, 400);
 
-  // ─── 9. Add vignette overlay to darken ───
-  const vignette = document.createElement('div');
-  vignette.className = 'portal-vignette';
-  document.body.appendChild(vignette);
-  setTimeout(() => vignette.classList.add('active'), 500);
-
-  // ─── 10. Reveal category screen ───
+  // ─── 9. Seamlessly reveal category content ON TOP of portal clone ───
+  // No screen switching — catScreen is a fixed overlay above the clone.
+  // The zoomed clone IS the background.
   setTimeout(() => {
-    document.getElementById('home').classList.add('off');
+    // Make catScreen visible as overlay (still transparent at this point)
     catScreen.classList.add('visible');
 
-    // Stagger sub-cards — use independent timeouts, NOT dependent on parent opacity
+    // Hero gradient fades in gradually over the portal clone
+    // Sub-cards stagger in with animation-delay
     const subCards = catScreen.querySelectorAll('.sub-card');
-    // catScreen opacity is 0→1 over 0.6s, but sub-cards have their OWN opacity
-    // We start immediately since catScreen is now visible
+    const baseDelay = 0.9; // seconds — wait for hero text to appear first
     subCards.forEach((sc, i) => {
-      setTimeout(() => {
-        sc.classList.add('sub-card-in');
-      }, 700 + i * 180); // 700ms initial delay for hero text to settle, then stagger
+      sc.style.setProperty('--reveal-delay', (baseDelay + i * 0.18) + 's');
+      sc.classList.add('sub-card-in');
     });
 
-    // Clean up transition elements
+    // Clean up — but KEEP the portal clone as persistent background!
+    const totalAnimTime = (baseDelay + subCards.length * 0.18 + 0.7) * 1000;
     setTimeout(() => {
-      clone.remove();
       backdrop.remove();
-      vignette.remove();
+      document.getElementById('home').classList.add('off');
       isAnimating = false;
-    }, 700 + subCards.length * 180 + 500);
+    }, totalAnimTime);
 
-  }, 950); // after the portal zoom finishes
+  }, 850); // slightly before portal zoom fully finishes — for seamless blend
 }
 
-// ── REVERSE ZOOM-OUT (GO HOME) ──
+// ── REVERSE — GO HOME ──
 function goHome() {
   if (isAnimating) return;
   isAnimating = true;
@@ -253,43 +253,51 @@ function goHome() {
   const homeScreen = document.getElementById('home');
   const homeWrap = document.querySelector('.home-wrap');
 
-  // 1. Fade out sub-cards in reverse, one by one
+  // 1. Fade out sub-cards in reverse with exit animation
   const subCards = [...catScreen.querySelectorAll('.sub-card')].reverse();
   subCards.forEach((sc, i) => {
-    setTimeout(() => sc.classList.remove('sub-card-in'), i * 80);
+    sc.classList.remove('sub-card-in');
+    sc.style.setProperty('--exit-delay', (i * 0.07) + 's');
+    sc.classList.add('sub-card-out');
   });
 
-  // 2. After sub-cards gone, fade out hero text
-  const subFadeTime = subCards.length * 80 + 200;
+  // 2. After sub-cards gone, fade out hero text + whole overlay
+  const subFadeTime = subCards.length * 70 + 350 + 200;
   setTimeout(() => {
     catScreen.classList.remove('visible');
   }, subFadeTime);
 
-  // 3. Switch screens — wait extra for hero text to fade (400ms base transition)
+  // 3. After catScreen is hidden, restore home screen
   setTimeout(() => {
-    catScreen.classList.add('off');
-    homeScreen.classList.remove('off');
-    homeWrap.classList.add('fading-out');
+    catScreen.scrollTop = 0;
 
-    // Restore card
+    // Remove portal clone background
+    if (activePortalClone) {
+      activePortalClone.remove();
+      activePortalClone = null;
+    }
+
+    homeScreen.classList.remove('off');
+
+    // Restore the card that was hidden
     if (lastOpenedCard) {
       lastOpenedCard.style.opacity = '0';
       lastOpenedCard.style.transform = 'scale(0.85)';
       lastOpenedCard.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)';
-    }
 
-    // Force reflow then fade in
-    homeWrap.offsetHeight;
-    homeWrap.classList.remove('fading-out');
-    homeWrap.style.transition = 'opacity 0.6s ease';
-    homeWrap.style.opacity = '1';
+      // Remove fading-out class on home
+      homeWrap.classList.remove('fading-out');
+      homeWrap.style.opacity = '1';
+      homeWrap.style.transition = 'opacity 0.5s ease';
 
-    requestAnimationFrame(() => {
-      if (lastOpenedCard) {
+      requestAnimationFrame(() => {
         lastOpenedCard.style.opacity = '1';
         lastOpenedCard.style.transform = '';
-      }
-    });
+      });
+    } else {
+      homeWrap.classList.remove('fading-out');
+      homeWrap.style.opacity = '1';
+    }
 
     setTimeout(() => {
       homeWrap.style.transition = '';
@@ -302,7 +310,7 @@ function goHome() {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }, 650);
 
-  }, subFadeTime + 450);
+  }, subFadeTime + 500);
 }
 
 // ── Populate category screen ──
@@ -312,14 +320,11 @@ function populateCatScreen(cat) {
   document.getElementById('catDescLine').textContent = cat.sub;
 
   const heroBg = document.getElementById('catHeroBg');
-  if (cat.image) {
-    heroBg.style.backgroundImage = `url('${cat.image}')`;
-    heroBg.style.background = '';
-    heroBg.style.backgroundImage = `url('${cat.image}')`;
-    heroBg.style.backgroundSize = 'cover';
-    heroBg.style.backgroundPosition = 'center 30%';
-  } else {
-    heroBg.style.backgroundImage = '';
+  // For image cards: portal clone IS the background — hero-bg is just a subtle overlay
+  // For non-image cards: use a gradient as bg
+  heroBg.style.backgroundImage = '';
+  heroBg.style.background = '';
+  if (!cat.image) {
     heroBg.style.background =
       `radial-gradient(ellipse at 30% 60%, ${cat.bg}ff 0%, transparent 75%)`;
   }
