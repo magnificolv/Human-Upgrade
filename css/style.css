@@ -313,7 +313,7 @@ body::before {
 
 /* ── FULL-BLEED IMAGE CARDS (poster style) ── */
 .card.has-image .card-texture { display: none; }
-.card.has-image .card-shimmer { display: none; }
+/* Shimmer stays ON for image cards — gives that 3D holographic glow sweep */
 
 .card-bg-img {
   position: absolute; inset: 0;
