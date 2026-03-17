@@ -92,11 +92,9 @@ function buildCards() {
       <div class="card-particles"></div>
       <div class="card-shimmer"></div>
       <div class="card-inner">
-        <span class="card-label">${cat.num}</span>
         <div class="card-art">${artHTML}</div>
         <div class="card-footer">
           <span class="card-name">${cat.name}</span>
-          <span class="card-arrow">→</span>
         </div>
       </div>`;
     grid.appendChild(card);

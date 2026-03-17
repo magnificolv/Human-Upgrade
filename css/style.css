@@ -324,6 +324,8 @@ body::before {
 .card-bg-img img {
   width: 100%; height: 100%;
   object-fit: cover;
+  object-position: center;
+  image-rendering: -webkit-optimize-contrast; /* sharper on WebKit */
   transition: transform 0.6s cubic-bezier(.22,.68,0,1.15);
 }
 .card.has-image:hover .card-bg-img img {
@@ -390,6 +392,8 @@ body::before {
 .portal-clone img {
   width: 100%; height: 100%;
   object-fit: cover;
+  object-position: center;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* SVG/texture fallback inside clone */

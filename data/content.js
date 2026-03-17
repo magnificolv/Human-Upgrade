@@ -39,7 +39,7 @@ const CATEGORIES = [
     name:  'Emotional',
     sub:   'Emociju pasaule',
     bg:    '#1a0a2e',
-    image: null, // Nomainī uz: 'images/emotional.png'
+    image: 'images/emotional.png',
     items: [
       { icon: '🗣',  title: 'Dalīšanās',            desc: 'Runāt atklāti par savām sajūtām ar uzticamu cilvēku' },
       { icon: '📓',  title: 'Jūtu dienasgrāmata',   desc: 'Ikdienas rakstīšana — ko sajutu, kas izraisīja, kā reaģēju' },
@@ -55,7 +55,7 @@ const CATEGORIES = [
     name:  'Intellectual',
     sub:   'Prāta attīstība',
     bg:    '#071a0f',
-    image: null, // Nomainī uz: 'images/intellectual.png'
+    image: 'images/intellectual.png',
     items: [
       { icon: '🧠', title: 'Cilvēka uzbūve',       desc: 'Kā strādā smadzenes, nervu sistēma, hormoni' },
       { icon: '🌍', title: 'Pasaules mehānismi',   desc: 'Ekonomika, politika, fizika — kā pasaule ir sakārtota' },
