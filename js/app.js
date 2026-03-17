@@ -201,10 +201,11 @@ function openCat(key, cardEl) {
     document.getElementById('home').classList.add('off');
     catScreen.classList.add('visible');
 
-    // Stagger sub-cards one by one
+    // Stagger sub-cards one by one — wait for parent opacity to finish first (600ms)
     const subCards = catScreen.querySelectorAll('.sub-card');
+    const parentFadeMs = 650; // slightly longer than #catScreen opacity transition (0.6s)
     subCards.forEach((sc, i) => {
-      setTimeout(() => sc.classList.add('sub-card-in'), i * 180);
+      setTimeout(() => sc.classList.add('sub-card-in'), parentFadeMs + i * 200);
     });
 
     // Clean up overlay after everything settles
@@ -212,7 +213,7 @@ function openCat(key, cardEl) {
       overlay.remove();
       backdrop.remove();
       isAnimating = false;
-    }, subCards.length * 180 + 600);
+    }, parentFadeMs + subCards.length * 200 + 600);
 
   }, 1100); // wait for the slower zoom to finish
 }
