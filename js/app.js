@@ -72,16 +72,21 @@ function buildCards() {
   const grid = document.getElementById('cardGrid');
   CATEGORIES.forEach((cat, idx) => {
     const card = document.createElement('div');
-    card.className = 'card';
-    card.style.background = cat.bg; // base fallback, texture layer overrides visually
+    card.className = 'card' + (cat.image ? ' has-image' : '');
+    card.style.background = cat.bg;
     card.dataset.key = cat.key;
     card.addEventListener('click', () => openCat(cat.key, card));
 
     const artHTML = cat.image
-      ? `<img class="art-img" src="${cat.image}" alt="${cat.name}">`
+      ? '' // image cards use full-bleed background instead
       : (SVG_ART[cat.key] || '');
 
+    const bgImgHTML = cat.image
+      ? `<div class="card-bg-img"><img src="${cat.image}" alt="${cat.name}"></div>`
+      : '';
+
     card.innerHTML = `
+      ${bgImgHTML}
       <div class="card-texture"></div>
       <div class="card-particles"></div>
       <div class="card-shimmer"></div>
@@ -97,7 +102,7 @@ function buildCards() {
   });
 }
 
-// ── ZOOM-IN IMMERSIVE OPEN — CINEMATIC ──
+// ── PORTAL DIVE OPEN — CINEMATIC ──
 function openCat(key, cardEl) {
   if (isAnimating) return;
   isAnimating = true;
@@ -106,116 +111,137 @@ function openCat(key, cardEl) {
   const cat = CATEGORIES.find(c => c.key === key);
   if (!cat) { isAnimating = false; return; }
 
-  // 1. Get card position
   const rect = cardEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
-  // 2. Create backdrop blur
+  // ─── 1. Create backdrop blur ───
   const backdrop = document.createElement('div');
   backdrop.className = 'zoom-backdrop';
   document.body.appendChild(backdrop);
 
-  // 3. Create zoom overlay at card position
-  const overlay = document.createElement('div');
-  overlay.className = 'zoom-overlay';
-  overlay.style.top = rect.top + 'px';
-  overlay.style.left = rect.left + 'px';
-  overlay.style.width = rect.width + 'px';
-  overlay.style.height = rect.height + 'px';
-  overlay.style.background = cat.bg;
+  // ─── 2. Clone the card visually ───
+  const clone = document.createElement('div');
+  clone.className = 'portal-clone';
+  clone.style.top = rect.top + 'px';
+  clone.style.left = rect.left + 'px';
+  clone.style.width = rect.width + 'px';
+  clone.style.height = rect.height + 'px';
 
-  // Texture gradients per category
-  const textures = {
-    spiritual:    'radial-gradient(ellipse at 30% 80%, rgba(30,80,180,0.4), transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(100,160,255,0.2), transparent 45%)',
-    emotional:    'radial-gradient(ellipse at 60% 30%, rgba(140,50,200,0.4), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(200,100,255,0.15), transparent 45%)',
-    intellectual: 'radial-gradient(ellipse at 40% 70%, rgba(30,160,80,0.35), transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(80,200,120,0.15), transparent 45%)',
-    physical:     'radial-gradient(ellipse at 50% 50%, rgba(180,40,40,0.4), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(255,100,60,0.15), transparent 45%)'
-  };
-  overlay.style.backgroundImage = textures[cat.key] || '';
-
-  // Art content inside overlay
-  const artHTML = cat.image
-    ? `<img src="${cat.image}" style="width:60%;max-width:130px;border-radius:6px;object-fit:cover;">`
-    : (SVG_ART[cat.key] || '');
-
-  // Build overlay with glow rings + particles
-  overlay.innerHTML = `
-    <div class="zoom-inner-art">${artHTML}</div>
-    <div class="zoom-glow-ring"></div>
-    <div class="zoom-glow-ring ring-2"></div>
-    <div class="zoom-particles"></div>`;
-
-  // Generate burst particles
-  const particleContainer = overlay.querySelector('.zoom-particles');
-  for (let i = 0; i < 15; i++) {
-    const zp = document.createElement('div');
-    zp.className = 'zp';
-    const size = 1 + Math.random() * 3;
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 80 + Math.random() * 200;
-    const endX = Math.cos(angle) * dist;
-    const endY = Math.sin(angle) * dist;
-    zp.style.cssText = `
-      width:${size}px; height:${size}px;
-      top:50%; left:50%;
-      --zp-end: translate(${endX}px, ${endY}px) scale(${0.2 + Math.random() * 0.5});
-      animation-delay: ${0.1 + Math.random() * 0.4}s;
-    `;
-    if (Math.random() > 0.5) zp.style.background = 'rgba(255,255,255,0.3)';
-    particleContainer.appendChild(zp);
+  if (cat.image) {
+    clone.innerHTML = `<img src="${cat.image}" alt="${cat.name}">`;
+  } else {
+    // For non-image cards, capture background style
+    clone.style.background = cat.bg;
+    const textures = {
+      spiritual:    'radial-gradient(ellipse at 30% 80%, rgba(30,80,180,0.4), transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(100,160,255,0.2), transparent 45%)',
+      emotional:    'radial-gradient(ellipse at 60% 30%, rgba(140,50,200,0.4), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(200,100,255,0.15), transparent 45%)',
+      intellectual: 'radial-gradient(ellipse at 40% 70%, rgba(30,160,80,0.35), transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(80,200,120,0.15), transparent 45%)',
+      physical:     'radial-gradient(ellipse at 50% 50%, rgba(180,40,40,0.4), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(255,100,60,0.15), transparent 45%)'
+    };
+    clone.style.backgroundImage = textures[cat.key] || '';
+    clone.innerHTML = `<div class="portal-clone-bg" style="display:flex;align-items:center;justify-content:center;">${SVG_ART[cat.key] || ''}</div>`;
   }
 
-  document.body.appendChild(overlay);
+  document.body.appendChild(clone);
 
-  // 4. Hide original card
+  // ─── 3. Calculate FLIP transform ───
+  // We want the clone to fill the viewport
+  const scaleX = vw / rect.width;
+  const scaleY = vh / rect.height;
+  const scale = Math.max(scaleX, scaleY); // cover, not contain
+  const endX = (vw / 2) - (rect.left + rect.width / 2);
+  const endY = (vh / 2) - (rect.top + rect.height / 2);
+
+  // ─── 4. Hide original card ───
   cardEl.style.opacity = '0';
 
-  // 5. Prepare category content (hidden)
+  // ─── 5. Prepare category content ───
   populateCatScreen(cat);
   const catScreen = document.getElementById('catScreen');
   catScreen.classList.remove('off');
   catScreen.classList.remove('visible');
-  // Remove any lingering sub-card-in classes
   catScreen.querySelectorAll('.sub-card').forEach(sc => sc.classList.remove('sub-card-in'));
 
   // Force reflow
-  overlay.offsetHeight;
+  clone.offsetHeight;
 
-  // 6. Activate backdrop
+  // ─── 6. Start the portal dive ───
   backdrop.classList.add('active');
-
-  // 7. Fade out home
   document.querySelector('.home-wrap').classList.add('fading-out');
 
-  // 8. Expand overlay — slower, cinematic
+  // Animate clone with CSS transition (GPU accelerated transform)
+  clone.style.transition = `
+    transform 1s cubic-bezier(0.4, 0, 0.15, 1),
+    border-radius 0.8s cubic-bezier(0.4, 0, 0.15, 1)`;
+
   requestAnimationFrame(() => {
-    overlay.style.top = '0px';
-    overlay.style.left = '0px';
-    overlay.style.width = '100vw';
-    overlay.style.height = '100vh';
-    overlay.style.borderRadius = '0px';
-    overlay.classList.add('expanded');
+    clone.style.transform = `translate(${endX}px, ${endY}px) scale(${scale})`;
+    clone.style.borderRadius = '0px';
   });
 
-  // 9. After expansion, reveal category content
+  // ─── 7. Flash of light at card center ───
+  setTimeout(() => {
+    const flash = document.createElement('div');
+    flash.className = 'portal-flash';
+    const flashX = ((rect.left + rect.width / 2) / vw * 100);
+    const flashY = ((rect.top + rect.height / 2) / vh * 100);
+    flash.style.setProperty('--flash-x', flashX + '%');
+    flash.style.setProperty('--flash-y', flashY + '%');
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 900);
+  }, 300);
+
+  // ─── 8. Spawn floating dust particles ───
+  setTimeout(() => {
+    const dust = document.createElement('div');
+    dust.className = 'portal-dust';
+    for (let i = 0; i < 20; i++) {
+      const pd = document.createElement('div');
+      pd.className = 'pd';
+      const size = 1 + Math.random() * 3;
+      pd.style.width = size + 'px';
+      pd.style.height = size + 'px';
+      pd.style.left = (10 + Math.random() * 80) + '%';
+      pd.style.top = (30 + Math.random() * 50) + '%';
+      pd.style.animationDelay = (Math.random() * 0.8) + 's';
+      if (Math.random() > 0.5) pd.style.background = 'rgba(255,255,255,0.3)';
+      dust.appendChild(pd);
+    }
+    document.body.appendChild(dust);
+    setTimeout(() => dust.remove(), 3500);
+  }, 400);
+
+  // ─── 9. Add vignette overlay to darken ───
+  const vignette = document.createElement('div');
+  vignette.className = 'portal-vignette';
+  document.body.appendChild(vignette);
+  setTimeout(() => vignette.classList.add('active'), 500);
+
+  // ─── 10. Reveal category screen ───
   setTimeout(() => {
     document.getElementById('home').classList.add('off');
     catScreen.classList.add('visible');
 
-    // Stagger sub-cards one by one — wait for parent opacity to finish first (600ms)
+    // Stagger sub-cards — use independent timeouts, NOT dependent on parent opacity
     const subCards = catScreen.querySelectorAll('.sub-card');
-    const parentFadeMs = 650; // slightly longer than #catScreen opacity transition (0.6s)
+    // catScreen opacity is 0→1 over 0.6s, but sub-cards have their OWN opacity
+    // We start immediately since catScreen is now visible
     subCards.forEach((sc, i) => {
-      setTimeout(() => sc.classList.add('sub-card-in'), parentFadeMs + i * 200);
+      setTimeout(() => {
+        sc.classList.add('sub-card-in');
+      }, 700 + i * 180); // 700ms initial delay for hero text to settle, then stagger
     });
 
-    // Clean up overlay after everything settles
+    // Clean up transition elements
     setTimeout(() => {
-      overlay.remove();
+      clone.remove();
       backdrop.remove();
+      vignette.remove();
       isAnimating = false;
-    }, parentFadeMs + subCards.length * 200 + 600);
+    }, 700 + subCards.length * 180 + 500);
 
-  }, 1100); // wait for the slower zoom to finish
+  }, 950); // after the portal zoom finishes
 }
 
 // ── REVERSE ZOOM-OUT (GO HOME) ──
@@ -239,7 +265,7 @@ function goHome() {
     catScreen.classList.remove('visible');
   }, subFadeTime);
 
-  // 3. Switch screens
+  // 3. Switch screens — wait extra for hero text to fade (400ms base transition)
   setTimeout(() => {
     catScreen.classList.add('off');
     homeScreen.classList.remove('off');
@@ -284,8 +310,19 @@ function populateCatScreen(cat) {
   document.getElementById('catEyebrow').textContent = cat.num + ' — Human Upgrade';
   document.getElementById('catTitleLarge').textContent = cat.name;
   document.getElementById('catDescLine').textContent = cat.sub;
-  document.getElementById('catHeroBg').style.background =
-    `radial-gradient(ellipse at 30% 60%, ${cat.bg}ff 0%, transparent 75%)`;
+
+  const heroBg = document.getElementById('catHeroBg');
+  if (cat.image) {
+    heroBg.style.backgroundImage = `url('${cat.image}')`;
+    heroBg.style.background = '';
+    heroBg.style.backgroundImage = `url('${cat.image}')`;
+    heroBg.style.backgroundSize = 'cover';
+    heroBg.style.backgroundPosition = 'center 30%';
+  } else {
+    heroBg.style.backgroundImage = '';
+    heroBg.style.background =
+      `radial-gradient(ellipse at 30% 60%, ${cat.bg}ff 0%, transparent 75%)`;
+  }
 
   const grid = document.getElementById('subGrid');
   grid.innerHTML = '';

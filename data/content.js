@@ -23,7 +23,7 @@ const CATEGORIES = [
     name:  'Spiritual',
     sub:   'Dvēseles attīstība',
     bg:    '#0d1428',
-    image: null, // Nomainī uz: 'images/spiritual.png'
+    image: 'images/spiritual.png',
     items: [
       { icon: '🌀', title: 'Meditācija',              desc: 'Ikdienas klusuma prakse — 10–30 min, lai iepazītu sevi' },
       { icon: '🍄', title: 'Psihedēliskā pieredze',   desc: 'Apzināts brauciens ar mushroom vai citiem augiem' },

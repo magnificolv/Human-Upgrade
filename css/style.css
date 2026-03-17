@@ -311,23 +311,42 @@ body::before {
 /* SVG placeholder illustrations */
 .art-svg { width: 80%; max-width: 110px; opacity: 0.82; }
 
-/*
-  ─────────────────────────────────────────────
-  HOW TO REPLACE SVG WITH YOUR OWN IMAGE:
+/* ── FULL-BLEED IMAGE CARDS (poster style) ── */
+.card.has-image .card-texture { display: none; }
+.card.has-image .card-shimmer { display: none; }
 
-  1. Put your image file in the images/ folder
-     (e.g. images/spiritual.png)
+.card-bg-img {
+  position: absolute; inset: 0;
+  z-index: 0;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.card-bg-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(.22,.68,0,1.15);
+}
+.card.has-image:hover .card-bg-img img {
+  transform: scale(1.06);
+}
 
-  2. In js/app.js, find the card for that category
-     and change:
-       image: null
-     to:
-       image: 'images/spiritual.png'
+/* Gradient overlay on image cards so text is readable */
+.card-bg-img::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.7) 0%,
+    rgba(0,0,0,0.15) 40%,
+    rgba(0,0,0,0.05) 100%
+  );
+  z-index: 1;
+}
 
-  3. Done! The SVG will be replaced automatically.
-  ─────────────────────────────────────────────
-*/
+/* Hide the centered art area on image cards */
+.card.has-image .card-art { display: none; }
 
+/* Non-image cards keep old style */
 .art-img {
   width: 85%; max-width: 130px;
   border-radius: 6px; object-fit: cover;
@@ -355,108 +374,95 @@ body::before {
 .card:hover .card-arrow { border-color: var(--gold); color: var(--gold); }
 
 /* ══════════════════════════════════════════
-   ZOOM TRANSITION — HIGH FIDELITY
+   PORTAL DIVE TRANSITION
    ══════════════════════════════════════════ */
 
-.zoom-overlay {
+/* Clone of the card that flies to fill viewport */
+.portal-clone {
   position: fixed;
   z-index: 1000;
-  border-radius: 18px;
   overflow: hidden;
   pointer-events: none;
-  will-change: width, height, top, left, border-radius;
-  transition:
-    top 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
-    left 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
-    width 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
-    height 1.1s cubic-bezier(0.25, 0.1, 0.25, 1),
-    border-radius 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform, border-radius;
+  transform-origin: center center;
+  border-radius: 18px;
+}
+.portal-clone img {
+  width: 100%; height: 100%;
+  object-fit: cover;
 }
 
-/* Art inside overlay fades & scales */
-.zoom-overlay .zoom-inner-art {
+/* SVG/texture fallback inside clone */
+.portal-clone-bg {
   position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.5s ease 0.3s, transform 1.1s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-.zoom-overlay.expanded .zoom-inner-art {
-  opacity: 0;
-  transform: scale(1.8);
-  transition: opacity 0.4s ease 0.1s, transform 0.8s ease;
 }
 
-/* Central light flash */
-.zoom-overlay::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-.zoom-overlay.expanded::after {
-  opacity: 1;
-  transition: opacity 0.3s ease 0.2s;
-}
-
-/* Animated expanding glow ring inside overlay */
-.zoom-glow-ring {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 0; height: 0;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  border: 1px solid rgba(200,169,110,0.3);
-  box-shadow: 0 0 40px rgba(200,169,110,0.1), inset 0 0 40px rgba(200,169,110,0.05);
+/* Light flash at the moment of expansion */
+.portal-flash {
+  position: fixed; inset: 0;
+  z-index: 1001;
+  background: radial-gradient(circle at var(--flash-x, 50%) var(--flash-y, 50%),
+    rgba(255,255,255,0.25) 0%, transparent 60%);
   opacity: 0;
   pointer-events: none;
-  transition: width 1.2s cubic-bezier(0.25,0.1,0.25,1),
-              height 1.2s cubic-bezier(0.25,0.1,0.25,1),
-              opacity 0.8s ease;
+  animation: portalFlash 0.8s ease-out forwards;
 }
-.zoom-overlay.expanded .zoom-glow-ring {
-  width: 250vmax; height: 250vmax;
-  opacity: 1;
-  border-color: rgba(200,169,110,0.08);
-}
-.zoom-glow-ring.ring-2 {
-  border-color: rgba(255,255,255,0.08);
-  transition-delay: 0.15s;
-  box-shadow: 0 0 60px rgba(255,255,255,0.03);
+@keyframes portalFlash {
+  0%   { opacity: 0; }
+  25%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
-/* Floating particles inside the zoom overlay */
-.zoom-particles {
-  position: absolute; inset: 0;
-  overflow: hidden; pointer-events: none;
+/* Vignette that darkens after image fills screen */
+.portal-vignette {
+  position: fixed; inset: 0;
+  z-index: 1002;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to top,
+    rgba(6,6,12,0.95) 0%,
+    rgba(6,6,12,0.6) 35%,
+    rgba(6,6,12,0.3) 60%,
+    rgba(6,6,12,0.15) 100%);
+  transition: opacity 0.6s ease;
 }
-.zoom-particles .zp {
+.portal-vignette.active {
+  opacity: 1;
+}
+
+/* Floating dust particles during portal transition */
+.portal-dust {
+  position: fixed; inset: 0;
+  z-index: 1003;
+  overflow: hidden;
+  pointer-events: none;
+}
+.portal-dust .pd {
   position: absolute;
   border-radius: 50%;
-  background: rgba(200,169,110,0.4);
+  background: rgba(200,169,110,0.5);
   opacity: 0;
+  animation: dustFloat 2.5s ease-out forwards;
 }
-.zoom-overlay.expanded .zoom-particles .zp {
-  animation: zoomParticleBurst 1.4s ease-out forwards;
-}
-@keyframes zoomParticleBurst {
-  0%   { transform: translate(0,0) scale(0); opacity: 0; }
-  20%  { opacity: 1; }
-  100% { transform: var(--zp-end); opacity: 0; }
+@keyframes dustFloat {
+  0%   { transform: translateY(0) scale(0); opacity: 0; }
+  15%  { opacity: 0.8; transform: translateY(0) scale(1); }
+  100% { transform: translateY(-120px) scale(0.3); opacity: 0; }
 }
 
-/* Backdrop — slower, deeper */
+/* Backdrop blur */
 .zoom-backdrop {
   position: fixed; inset: 0; z-index: 999;
   background: rgba(6,6,12,0);
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
-  transition: background 0.8s ease, backdrop-filter 0.8s ease, -webkit-backdrop-filter 0.8s ease;
+  transition: background 0.7s ease, backdrop-filter 0.7s ease, -webkit-backdrop-filter 0.7s ease;
   pointer-events: none;
 }
 .zoom-backdrop.active {
-  background: rgba(6,6,12,0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(6,6,12,0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Home screen fade-out */
@@ -469,21 +475,41 @@ body::before {
    CATEGORY SCREEN — CINEMATIC REVEAL
    ══════════════════════════════════════════ */
 
+/* catScreen uses visibility, NOT opacity — so child sub-cards
+   can independently control their own opacity for staggered reveal */
 #catScreen {
-  opacity: 0;
-  transition: opacity 0.6s ease;
+  visibility: hidden;
 }
 #catScreen.visible {
-  opacity: 1;
+  visibility: visible;
 }
 
 .cat-hero {
   position: relative;
   padding: 3.5rem 2rem 2.5rem;
   overflow: hidden;
+  min-height: 35vh;
 }
 
-.cat-hero-bg { position: absolute; inset: 0; opacity: 0.45; }
+.cat-hero-bg {
+  position: absolute; inset: 0; opacity: 0;
+  transition: opacity 0.8s ease 0.3s;
+  background-size: cover;
+  background-position: center 30%;
+}
+/* Gradient overlay on hero bg image */
+.cat-hero-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top,
+    var(--bg) 0%,
+    rgba(6,6,12,0.85) 30%,
+    rgba(6,6,12,0.4) 60%,
+    rgba(6,6,12,0.2) 100%);
+}
+#catScreen.visible .cat-hero-bg {
+  opacity: 0.55;
+}
 
 .back-btn {
   position: absolute; top: 1.5rem; left: 1.5rem;
@@ -497,11 +523,12 @@ body::before {
   transition: background 0.2s, color 0.2s; z-index: 2;
   opacity: 0;
   transform: translateX(-20px);
+  transition: background 0.2s, color 0.2s, opacity 0.5s ease, transform 0.5s ease;
 }
 #catScreen.visible .back-btn {
   opacity: 1;
   transform: translateX(0);
-  transition: background 0.2s, color 0.2s, opacity 0.5s ease 0.8s, transform 0.5s ease 0.8s;
+  transition-delay: 0s, 0s, 0.5s, 0.5s;
 }
 .back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
@@ -513,11 +540,12 @@ body::before {
   color: var(--gold); opacity: 0;
   margin-bottom: 8px;
   transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 #catScreen.visible .cat-eyebrow {
   opacity: 0.8;
   transform: translateY(0);
-  transition: opacity 0.6s ease 0.7s, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94) 0.7s;
+  transition: opacity 0.6s ease 0.4s, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94) 0.4s;
 }
 
 .cat-title-large {
@@ -527,11 +555,12 @@ body::before {
   line-height: 1; color: #f0ead8; margin-bottom: 6px;
   opacity: 0;
   transform: translateY(30px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 #catScreen.visible .cat-title-large {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.7s ease 0.8s, transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94) 0.8s;
+  transition: opacity 0.7s ease 0.5s, transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94) 0.5s;
 }
 
 .cat-desc-line {
@@ -539,11 +568,12 @@ body::before {
   letter-spacing: 2px; text-transform: uppercase;
   opacity: 0;
   transform: translateY(15px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 #catScreen.visible .cat-desc-line {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.6s ease 0.95s, transform 0.6s ease 0.95s;
+  transition: opacity 0.6s ease 0.6s, transform 0.6s ease 0.6s;
 }
 
 /* Decorative line under hero */
@@ -558,7 +588,7 @@ body::before {
 #catScreen.visible .cat-hero-text::after {
   width: 60px;
   opacity: 0.4;
-  transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 1.1s, opacity 0.5s ease 1.1s;
+  transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.75s, opacity 0.5s ease 0.75s;
 }
 
 /* ── SUB-CARDS — ONE BY ONE ── */
@@ -609,5 +639,5 @@ body::before {
 }
 #catScreen.visible .scroll-hint {
   opacity: 1;
-  transition: opacity 0.5s ease 2.2s;
+  transition: opacity 0.5s ease 3s;
 }
