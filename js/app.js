@@ -143,7 +143,7 @@ function openCat(key, cardEl) {
   }
 
   document.body.appendChild(clone);
-  activePortalClone = clone; // save reference
+  activePortalClone = clone; // may get replaced by fullBg later
 
   // ─── 3. Calculate FLIP transform ───
   // We want the clone to fill the viewport
@@ -215,23 +215,31 @@ function openCat(key, cardEl) {
     setTimeout(() => dust.remove(), 3500);
   }, 400);
 
-  // ─── 9. Seamlessly reveal category content ON TOP of portal clone ───
-  // No screen switching — catScreen is a fixed overlay above the clone.
-  // The zoomed clone IS the background.
+  // ─── 9. After zoom, swap clone for true full-viewport background ───
   setTimeout(() => {
-    // Make catScreen visible as overlay (still transparent at this point)
+    // Create full-viewport background that properly covers entire screen
+    if (cat.image) {
+      const fullBg = document.createElement('div');
+      fullBg.className = 'portal-fullbg';
+      fullBg.innerHTML = `<img src="${cat.image}" alt="${cat.name}">`;
+      document.body.appendChild(fullBg);
+      activePortalClone = fullBg; // track this as the bg to remove on goHome
+      clone.remove(); // remove the scaled clone
+    }
+    // For non-image cards, keep the clone as-is (gradient fills fine)
+
+    // Show catScreen overlay on top
     catScreen.classList.add('visible');
 
-    // Hero gradient fades in gradually over the portal clone
-    // Sub-cards stagger in with animation-delay
+    // Stagger sub-cards
     const subCards = catScreen.querySelectorAll('.sub-card');
-    const baseDelay = 0.9; // seconds — wait for hero text to appear first
+    const baseDelay = 0.9;
     subCards.forEach((sc, i) => {
       sc.style.setProperty('--reveal-delay', (baseDelay + i * 0.18) + 's');
       sc.classList.add('sub-card-in');
     });
 
-    // Clean up — but KEEP the portal clone as persistent background!
+    // Clean up
     const totalAnimTime = (baseDelay + subCards.length * 0.18 + 0.7) * 1000;
     setTimeout(() => {
       backdrop.remove();
@@ -239,7 +247,7 @@ function openCat(key, cardEl) {
       isAnimating = false;
     }, totalAnimTime);
 
-  }, 850); // slightly before portal zoom fully finishes — for seamless blend
+  }, 900);
 }
 
 // ── REVERSE — GO HOME ──

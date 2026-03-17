@@ -401,6 +401,19 @@ body::before {
   position: absolute; inset: 0;
 }
 
+/* Full-viewport background image that replaces clone after animation */
+.portal-fullbg {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+.portal-fullbg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 /* Light flash at the moment of expansion */
 .portal-flash {
   position: fixed; inset: 0;
