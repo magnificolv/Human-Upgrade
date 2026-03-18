@@ -164,6 +164,7 @@ function openCat(key, cardEl) {
   catScreen.querySelectorAll('.sub-card').forEach(sc => {
     sc.classList.remove('sub-card-in');
     sc.classList.remove('sub-card-out');
+    sc.classList.remove('floating');
   });
 
   // Force reflow
@@ -173,10 +174,26 @@ function openCat(key, cardEl) {
   backdrop.classList.add('active');
   document.querySelector('.home-wrap').classList.add('fading-out');
 
-  // Animate clone with CSS transition (GPU accelerated transform)
+  // ─── 6a. Pre-set bgFixed image (hidden) so it's ready for crossfade ───
+  const bgFixed = document.getElementById('catBgFixed');
+  const bgSrc = cat.bgImage || cat.image;
+  if (bgSrc) {
+    bgFixed.style.transition = 'none';
+    bgFixed.style.opacity = '0';
+    bgFixed.style.backgroundImage = `url('${bgSrc}')`;
+    bgFixed.style.backgroundColor = '';
+  } else {
+    bgFixed.style.transition = 'none';
+    bgFixed.style.opacity = '0';
+    bgFixed.style.backgroundImage = '';
+    bgFixed.style.backgroundColor = cat.bg;
+  }
+  bgFixed.offsetHeight; // force reflow
+
+  // Animate clone with CSS transition (GPU accelerated transform) — SLOWER
   clone.style.transition = `
-    transform 1s cubic-bezier(0.4, 0, 0.15, 1),
-    border-radius 0.8s cubic-bezier(0.4, 0, 0.15, 1)`;
+    transform 1.4s cubic-bezier(0.4, 0, 0.12, 1),
+    border-radius 1.1s cubic-bezier(0.4, 0, 0.15, 1)`;
 
   requestAnimationFrame(() => {
     clone.style.transform = `translate(${endX}px, ${endY}px) scale(${scale})`;
@@ -192,8 +209,8 @@ function openCat(key, cardEl) {
     flash.style.setProperty('--flash-x', flashX + '%');
     flash.style.setProperty('--flash-y', flashY + '%');
     document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 900);
-  }, 300);
+    setTimeout(() => flash.remove(), 1100);
+  }, 400);
 
   // ─── 8. Spawn floating dust particles ───
   setTimeout(() => {
@@ -212,43 +229,51 @@ function openCat(key, cardEl) {
       dust.appendChild(pd);
     }
     document.body.appendChild(dust);
-    setTimeout(() => dust.remove(), 3500);
-  }, 400);
+    setTimeout(() => dust.remove(), 4000);
+  }, 500);
 
-  // ─── 9. After zoom, set catScreen background and show overlay ───
+  // ─── 9. Begin crossfade: bgFixed fades IN while clone fades OUT ───
+  // Start crossfade DURING the zoom (at ~70% of zoom duration) for seamless blend
   setTimeout(() => {
-    // Set the full-screen background directly on catScreen — no z-index layering issues
-    if (cat.image) {
-      catScreen.style.backgroundImage = `url('${cat.image}')`;
-    } else {
-      catScreen.style.backgroundImage = '';
-      catScreen.style.backgroundColor = cat.bg;
-    }
+    // Fade in the fixed background layer
+    bgFixed.style.transition = 'opacity 0.9s ease';
+    bgFixed.style.opacity = '1';
 
-    // Remove the zoom clone — catScreen now IS the background
-    clone.remove();
+    // Fade out clone simultaneously — long overlap = no flash
+    clone.style.transition = 'opacity 0.9s ease';
+    clone.style.opacity = '0';
+  }, 900); // starts while zoom (1.4s) is still running
+
+  // ─── 10. After crossfade settles, show catScreen overlay ───
+  setTimeout(() => {
     activePortalClone = null;
-
-    // Show catScreen overlay
     catScreen.classList.add('visible');
 
-    // Stagger sub-cards
+    // Remove clone
+    setTimeout(() => clone.remove(), 400);
+
+    // Stagger bubble pop-in
     const subCards = catScreen.querySelectorAll('.sub-card');
-    const baseDelay = 0.9;
+    const baseDelay = 0.8;
+    const stagger = 0.12;
     subCards.forEach((sc, i) => {
-      sc.style.setProperty('--reveal-delay', (baseDelay + i * 0.18) + 's');
+      sc.style.setProperty('--reveal-delay', (baseDelay + i * stagger) + 's');
       sc.classList.add('sub-card-in');
+
+      // Add floating class after pop-in completes
+      const popDone = (baseDelay + i * stagger + 0.7) * 1000;
+      setTimeout(() => sc.classList.add('floating'), popDone);
     });
 
     // Clean up
-    const totalAnimTime = (baseDelay + subCards.length * 0.18 + 0.7) * 1000;
+    const totalAnimTime = (baseDelay + subCards.length * stagger + 0.9) * 1000;
     setTimeout(() => {
       backdrop.remove();
       document.getElementById('home').classList.add('off');
       isAnimating = false;
     }, totalAnimTime);
 
-  }, 900);
+  }, 1500); // after crossfade (0.9s starting at 0.9s = done ~1.8s, show at 1.5s for overlap)
 }
 
 // ── REVERSE — GO HOME ──
@@ -260,11 +285,12 @@ function goHome() {
   const homeScreen = document.getElementById('home');
   const homeWrap = document.querySelector('.home-wrap');
 
-  // 1. Fade out sub-cards in reverse with exit animation
+  // 1. Fade out bubbles in reverse with exit animation
   const subCards = [...catScreen.querySelectorAll('.sub-card')].reverse();
   subCards.forEach((sc, i) => {
     sc.classList.remove('sub-card-in');
-    sc.style.setProperty('--exit-delay', (i * 0.07) + 's');
+    sc.classList.remove('floating');
+    sc.style.setProperty('--exit-delay', (i * 0.06) + 's');
     sc.classList.add('sub-card-out');
   });
 
@@ -278,9 +304,12 @@ function goHome() {
   setTimeout(() => {
     catScreen.scrollTop = 0;
 
-    // Clear catScreen background
-    catScreen.style.backgroundImage = '';
-    catScreen.style.backgroundColor = '';
+    // Clear fixed background layer
+    const bgFixed = document.getElementById('catBgFixed');
+    bgFixed.style.transition = '';
+    bgFixed.style.opacity = '';
+    bgFixed.style.backgroundImage = '';
+    bgFixed.style.backgroundColor = '';
 
     homeScreen.classList.remove('off');
 
@@ -336,18 +365,35 @@ function populateCatScreen(cat) {
 
   const grid = document.getElementById('subGrid');
   grid.innerHTML = '';
+
+  const count = cat.items.length;
+  const radius = 115; // px from center
+  const angleOffset = -90; // start from top (12 o'clock)
+
   cat.items.forEach((item, i) => {
     const sc = document.createElement('div');
     sc.className = 'sub-card';
-    sc.style.background = cat.bg + 'bb';
+
+    // ── Circular positioning ──
+    const angle = angleOffset + (i * 360 / count);
+    const rad = angle * Math.PI / 180;
+    const bx = Math.cos(rad) * radius;
+    const by = Math.sin(rad) * radius;
+    sc.style.setProperty('--bx', bx + 'px');
+    sc.style.setProperty('--by', by + 'px');
+
+    // ── Floating animation params (each bubble unique) ──
+    sc.style.setProperty('--float-dur', (3.5 + Math.random() * 2.5) + 's');
+    sc.style.setProperty('--float-delay', (2 + i * 0.3) + 's');
+    sc.style.setProperty('--float-y', (-4 - Math.random() * 5) + 'px');
+
     // Icon can be emoji OR image path (starts with "images/")
     const iconHTML = item.icon && item.icon.startsWith('images/')
       ? `<img class="sub-icon-img" src="${item.icon}" alt="${item.title}">`
       : item.icon || '✨';
     sc.innerHTML = `
       <span class="sub-icon">${iconHTML}</span>
-      <div class="sub-title">${item.title}</div>
-      <div class="sub-text">${item.desc}</div>`;
+      <div class="sub-title">${item.title}</div>`;
     grid.appendChild(sc);
   });
 }
@@ -379,6 +425,10 @@ function preloadImages() {
     if (cat.image) {
       const img = new Image();
       img.src = cat.image;
+    }
+    if (cat.bgImage) {
+      const bg = new Image();
+      bg.src = cat.bgImage;
     }
   });
 }

@@ -7,10 +7,13 @@
 //    - Maini tekstu starp pēdiņām: "Tavs teksts šeit"
 //    - Neizdzēs komatus, kols vai citas pieturzīmes ārpus pēdiņām
 //
-//  Kā pievienot savu bildi kārtij:
-//    1. Ieliec bildi mapē images/ (piemēram: images/spiritual.png)
-//    2. Nomainī:  image: null
-//       uz:       image: 'images/spiritual.png'
+//  Kā pievienot bildes:
+//    image:   kārts bilde (portrets, ~600×840) — redzama home ekrānā
+//    bgImage: fona bilde (landscape, ~1920×1080) — redzama category ekrānā
+//             Ja bgImage nav norādīts, izmantos image
+//
+//    1. Ieliec bildes mapē images/
+//    2. Norādi ceļus zemāk
 //
 //  Kā mainīt ikoniņas (emoji) sub-kartēm:
 //    - Vienkārši nomainī emoji simbolu starp pēdiņām
@@ -23,7 +26,8 @@ const CATEGORIES = [
     name:  'Spiritual',
     sub:   'Dvēseles attīstība',
     bg:    '#0d1428',
-    image: 'images/spiritual.png',
+    image:   'images/spiritual.png',
+    // bgImage: 'images/spiritual-bg.png',   // atkomentet kad būs landscape bilde
     items: [
       { icon: '🌀', title: 'Meditācija',              desc: 'Ikdienas klusuma prakse — 10–30 min, lai iepazītu sevi' },
       { icon: '🍄', title: 'Psihedēliskā pieredze',   desc: 'Apzināts brauciens ar mushroom vai citiem augiem' },
@@ -39,7 +43,8 @@ const CATEGORIES = [
     name:  'Emotional',
     sub:   'Emociju pasaule',
     bg:    '#1a0a2e',
-    image: 'images/emotional.png',
+    image:   'images/emotional.png',
+    // bgImage: 'images/emotional-bg.png',  // atkomentet kad būs landscape bilde
     items: [
       { icon: '🗣',  title: 'Dalīšanās',            desc: 'Runāt atklāti par savām sajūtām ar uzticamu cilvēku' },
       { icon: '📓',  title: 'Jūtu dienasgrāmata',   desc: 'Ikdienas rakstīšana — ko sajutu, kas izraisīja, kā reaģēju' },
@@ -55,7 +60,8 @@ const CATEGORIES = [
     name:  'Intellectual',
     sub:   'Prāta attīstība',
     bg:    '#071a0f',
-    image: 'images/intellectual.png',
+    image:   'images/intellectual.png',
+    // bgImage: 'images/intellectual-bg.png', // atkomentet kad būs landscape bilde
     items: [
       { icon: '🧠', title: 'Cilvēka uzbūve',       desc: 'Kā strādā smadzenes, nervu sistēma, hormoni' },
       { icon: '🌍', title: 'Pasaules mehānismi',   desc: 'Ekonomika, politika, fizika — kā pasaule ir sakārtota' },
@@ -71,7 +77,8 @@ const CATEGORIES = [
     name:  'Physical',
     sub:   'Ķermeņa iepazīšana',
     bg:    '#1c0808',
-    image: 'images/physical.png',
+    image:   'images/physical.png',
+    // bgImage: 'images/physical-bg.png',  // atkomentet kad būs landscape bilde
     items: [
       { icon: '🔥', title: 'Kundalini & enerģija',    desc: 'Elpošanas prakse, kundalini joga, enerģijas pamošanās' },
       { icon: '🌹', title: 'Seksuālā pašizzināšana',  desc: 'Sava ķermeņa, vēlmju un enerģijas izpēte' },

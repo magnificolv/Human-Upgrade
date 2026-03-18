@@ -79,9 +79,14 @@ body::before {
   position: relative;
   border-radius: 18px; cursor: pointer;
   overflow: hidden; aspect-ratio: 5/7;
-  border: 0.5px solid rgba(255,255,255,0.1);
+  border: 0.5px solid rgba(255,255,255,0.08);
   transition: transform 0.4s cubic-bezier(.22,.68,0,1.15), box-shadow 0.35s ease;
   animation: cardIn 0.7s ease backwards;
+}
+/* Image cards: zoom to crop the built-in card border, keep artwork visible */
+.card.has-image .card-bg-img img {
+  transform: scale(1.28);
+  transform-origin: center 42%;
 }
 .card:nth-child(1) { animation-delay: 0.05s; }
 .card:nth-child(2) { animation-delay: 0.15s; }
@@ -279,7 +284,7 @@ body::before {
 .card[data-key="intellectual"]:hover { box-shadow: 0 25px 60px rgba(20,80,40,0.4), 0 0 0 0.5px rgba(80,200,120,0.2); }
 .card[data-key="physical"]:hover { box-shadow: 0 25px 60px rgba(120,20,20,0.4), 0 0 0 0.5px rgba(255,100,60,0.2); }
 
-/* inner inset border decoration */
+/* inner inset border decoration — hidden on image cards for clean full-bleed look */
 .card::after {
   content: ''; position: absolute;
   top: 10px; left: 10px; right: 10px; bottom: 10px;
@@ -287,6 +292,9 @@ body::before {
   border: 0.5px solid rgba(255,255,255,0.06);
   pointer-events: none;
   z-index: 3;
+}
+.card.has-image::after {
+  display: none;
 }
 
 .card-inner {
@@ -329,24 +337,24 @@ body::before {
   transition: transform 0.6s cubic-bezier(.22,.68,0,1.15);
 }
 .card.has-image:hover .card-bg-img img {
-  transform: scale(1.06);
+  transform: scale(1.34);
 }
 
-/* Gradient overlay on image cards so text is readable */
+/* Minimal gradient — only a soft vignette for depth, not for text */
 .card-bg-img::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0,0,0,0.7) 0%,
-    rgba(0,0,0,0.15) 40%,
-    rgba(0,0,0,0.05) 100%
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0,0,0,0.2) 100%
   );
   z-index: 1;
 }
 
-/* Hide the centered art area on image cards */
+/* Hide the centered art area and footer on image cards — the image IS the card */
 .card.has-image .card-art { display: none; }
+.card.has-image .card-inner { display: none; }
 
 /* Non-image cards keep old style */
 .art-img {
@@ -422,11 +430,11 @@ body::before {
     rgba(255,255,255,0.25) 0%, transparent 60%);
   opacity: 0;
   pointer-events: none;
-  animation: portalFlash 0.8s ease-out forwards;
+  animation: portalFlash 1s ease-out forwards;
 }
 @keyframes portalFlash {
   0%   { opacity: 0; }
-  25%  { opacity: 1; }
+  20%  { opacity: 0.8; }
   100% { opacity: 0; }
 }
 
@@ -501,21 +509,37 @@ body::before {
   overflow-y: auto;
   pointer-events: none;
   visibility: hidden;
-  /* Full-screen background image set by JS — no separate layer needed */
-  background-color: var(--bg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-color: transparent; /* no black flash — bgFixed handles background */
 }
 #catScreen.visible {
   visibility: visible;
   pointer-events: auto;
 }
 
-/* Dark gradient that covers the zoomed portal image underneath */
+/* Fixed full-screen background image layer — stays in place when scrolling.
+   Must match portal clone's final frame exactly for seamless transition. */
+.cat-bg-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* No gradient overlay — let the image shine through fully.
+   Text readability handled by text-shadow glow + glass sub-cards. */
+
+/* Hero section — large immersive zone over the background image */
 .cat-hero {
   position: relative;
-  padding: 3rem 2rem 1.5rem;
+  z-index: 1;
+  min-height: 45vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 3rem 2.5rem 2rem;
   overflow: hidden;
 }
 
@@ -545,72 +569,83 @@ body::before {
 
 .back-btn {
   position: absolute; top: 1.5rem; left: 1.5rem;
-  background: rgba(255,255,255,0.05);
-  border: 0.5px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 40px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.6);
   font-family: 'Jost', sans-serif;
   font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
-  cursor: pointer; padding: 7px 16px;
+  cursor: pointer; padding: 8px 18px;
   z-index: 2;
   opacity: 0;
   transform: translateX(-20px);
-  transition: background 0.2s, color 0.2s, opacity 0.5s ease, transform 0.5s ease;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  transition: background 0.25s, color 0.25s, border-color 0.25s, opacity 0.5s ease, transform 0.5s ease;
+  backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 #catScreen.visible .back-btn {
   opacity: 1;
   transform: translateX(0);
   transition-delay: 0s, 0s, 0.5s, 0.5s;
 }
-.back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.25); }
 
 .cat-hero-text {
-  padding-top: 2rem; position: relative; z-index: 1;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5);
+  position: relative; z-index: 1;
 }
 
 .cat-eyebrow {
-  font-weight: 200; font-size: 10px;
+  font-weight: 200; font-size: 11px;
   letter-spacing: 5px; text-transform: uppercase;
   color: var(--gold); opacity: 0;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   transform: translateY(20px);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.8),
+    0 0 8px rgba(0,0,0,0.5);
 }
 #catScreen.visible .cat-eyebrow {
-  opacity: 0.8;
+  opacity: 0.9;
   transform: translateY(0);
-  transition: opacity 0.6s ease 0.4s, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94) 0.4s;
+  transition: opacity 0.8s ease 0.5s, transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.5s;
 }
 
 .cat-title-large {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 300;
-  font-size: clamp(2.2rem, 9vw, 3.5rem);
-  line-height: 1; color: #f0ead8; margin-bottom: 6px;
+  font-size: clamp(3rem, 11vw, 5rem);
+  line-height: 1; color: #fff; margin-bottom: 12px;
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  text-shadow:
+    0 1px 3px rgba(0,0,0,0.9),
+    0 0 10px rgba(0,0,0,0.7),
+    0 0 25px rgba(0,0,0,0.4);
 }
 #catScreen.visible .cat-title-large {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.7s ease 0.5s, transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94) 0.5s;
+  transition: opacity 0.9s ease 0.6s, transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94) 0.6s;
 }
 
 .cat-desc-line {
-  font-size: 12px; color: rgba(255,255,255,0.28);
-  letter-spacing: 2px; text-transform: uppercase;
+  font-size: 13px; color: var(--gold2);
+  letter-spacing: 3px; text-transform: uppercase;
+  font-weight: 200;
   opacity: 0;
   transform: translateY(15px);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.8),
+    0 0 8px rgba(0,0,0,0.5);
 }
 #catScreen.visible .cat-desc-line {
-  opacity: 1;
+  opacity: 0.7;
   transform: translateY(0);
-  transition: opacity 0.6s ease 0.6s, transform 0.6s ease 0.6s;
+  transition: opacity 0.8s ease 0.8s, transform 0.8s ease 0.8s;
 }
 
 /* Decorative line under hero */
@@ -623,86 +658,165 @@ body::before {
   opacity: 0;
 }
 #catScreen.visible .cat-hero-text::after {
-  width: 60px;
-  opacity: 0.4;
-  transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.75s, opacity 0.5s ease 0.75s;
+  width: 80px;
+  opacity: 0.5;
+  transition: width 1s cubic-bezier(0.25,0.46,0.45,0.94) 1s, opacity 0.7s ease 1s;
 }
 
-/* ── SUB-CARDS — ONE BY ONE ── */
+/* ── SUB-CARDS — ORBITAL BUBBLES ── */
 .sub-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 12px; padding: 1.5rem 1.5rem 3rem;
-  /* NO solid background — portal clone image shows through */
   position: relative;
   z-index: 1;
+  width: 100%;
+  height: 52vh;
+  min-height: 340px;
+  max-height: 460px;
+  /* No background — full image shows through */
+}
+
+/* Faint orbit ring decoration */
+.sub-grid::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 260px; height: 260px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 0.5px solid rgba(255,255,255,0.04);
+  pointer-events: none;
 }
 
 .sub-card {
-  border-radius: 14px; padding: 18px 16px;
-  border: 0.5px solid rgba(255,255,255,0.07);
+  position: absolute;
+  /* JS sets --bx, --by for orbital position */
+  left: calc(50% + var(--bx, 0px));
+  top:  calc(50% + var(--by, 0px));
+  transform: translate(-50%, -50%) scale(0);
   opacity: 0;
-  transform: translateY(40px) scale(0.88);
-  transition: border-color 0.3s, box-shadow 0.3s;
+
+  /* Bubble shape */
+  width: 86px; height: 86px;
+  border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  cursor: pointer;
+
+  /* Glass bubble */
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    inset 0 -1px 0 rgba(255,255,255,0.02);
+
+  transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
 }
 
-/* @keyframes animation — always plays reliably, unlike transitions */
-@keyframes subCardReveal {
+/* Bubble shine highlight */
+.sub-card::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 14px;
+  width: 30px; height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.12), transparent);
+  pointer-events: none;
+}
+
+/* ── Reveal animation — pop in from center ── */
+@keyframes bubblePop {
   0% {
     opacity: 0;
-    transform: translateY(40px) scale(0.88);
+    transform: translate(-50%, -50%) scale(0);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-/* JS sets --reveal-delay per card and adds .sub-card-in */
 .sub-card.sub-card-in {
-  animation: subCardReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: bubblePop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: var(--reveal-delay, 0s);
 }
 
-/* Reverse: JS adds .sub-card-out for exit animation */
-@keyframes subCardExit {
+/* After pop-in, add gentle floating */
+.sub-card.sub-card-in.floating {
+  animation: bubblePop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             bubbleFloat var(--float-dur, 4s) ease-in-out var(--float-delay, 1.5s) infinite alternate;
+}
+
+@keyframes bubbleFloat {
+  0%   { margin-top: 0; }
+  100% { margin-top: var(--float-y, -6px); }
+}
+
+/* Exit */
+@keyframes bubbleExit {
   0% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(20px) scale(0.92);
+    transform: translate(-50%, -50%) scale(0.3);
   }
 }
 .sub-card.sub-card-out {
-  animation: subCardExit 0.35s ease-in forwards;
+  animation: bubbleExit 0.3s ease-in forwards;
   animation-delay: var(--exit-delay, 0s);
 }
+
+/* Hover — glow up */
 .sub-card:hover {
-  border-color: rgba(255,255,255,0.18);
-  transform: translateY(-3px) !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.08) !important;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    0 0 20px rgba(255,255,255,0.04);
 }
 
-.sub-icon { font-size: 20px; margin-bottom: 10px; display: block; opacity: 0.8; }
-/* Custom image icons for sub-cards */
+/* ── Bubble content ── */
+.sub-header { display: none; } /* not used in bubble mode */
+
+.sub-icon {
+  font-size: 22px; display: block; opacity: 0.9;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+  line-height: 1;
+  margin-bottom: 3px;
+}
 .sub-icon-img {
-  width: 32px; height: 32px;
+  width: 28px; height: 28px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 50%;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
 }
 
 .sub-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 400; font-size: 16px;
-  color: rgba(255,255,255,0.88);
-  margin-bottom: 6px; line-height: 1.2;
+  font-family: 'Jost', sans-serif;
+  font-weight: 300; font-size: 8.5px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.15;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  max-width: 68px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .sub-text {
-  font-size: 11px; color: rgba(255,255,255,0.3);
-  line-height: 1.7; font-weight: 300;
+  display: none; /* hidden in bubble mode — keep clean */
 }
 
 .scroll-hint {
