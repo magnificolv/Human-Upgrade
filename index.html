@@ -5,30 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Human Upgrade — Izaugšanas ceļš</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap&subset=latin-ext" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@200;300;400;500&family=Jost:wght@200;300;400&display=swap&subset=latin-ext" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- ── LOADING SCREEN — elegant preloader ── -->
+  <div class="loader-screen" id="loaderScreen">
+    <div class="loader-content">
+      <div class="loader-ring">
+        <div class="loader-ring-inner"></div>
+      </div>
+      <div class="loader-text">
+        <span class="loader-title">Human Upgrade</span>
+        <span class="loader-sub">Sagatavo pieredzi...</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Persistent ambient dust — always on, never stops -->
   <div class="ambient-dust" id="ambientDust"></div>
 
   <div class="screen" id="home">
     <div class="home-wrap">
-      <span class="eyebrow">Human Upgrade</span>
+      <span class="eyebrow">HUMAN UPGRADE</span>
       <div>
         <h1 class="hero-title">Izaugšanas<br><em>ceļš</em></h1>
       </div>
       <div class="divider"></div>
       <div class="card-grid" id="cardGrid"></div>
-      <p class="hero-sub">Izvēlies savu ceļu</p>
+      <p class="hero-sub">IZVĒLIES SAVU CEĻU</p>
     </div>
   </div>
 
   <div class="screen" id="catScreen">
     <div class="cat-bg-fixed" id="catBgFixed"></div>
     <div class="cat-particles" id="catParticles"></div>
-    <button class="back-btn" id="backBtn">← Atpakaļ</button>
+    <button class="back-btn" id="backBtn">← ATPAKAĻ</button>
     <div class="cat-hero">
       <div class="cat-hero-bg" id="catHeroBg"></div>
       <div class="cat-hero-text">

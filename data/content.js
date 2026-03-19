@@ -24,7 +24,7 @@ const CATEGORIES = [
     key:   'spiritual',
     num:   '01',
     name:  'Spiritual',
-    sub:   'Dvēseles attīstība',
+    sub:   'DVĒSELES ATTĪSTĪBA',
     bg:    '#0d1428',
     image:   'images/spiritual.png',
     // bgImage: 'images/spiritual-bg.png',   // atkomentet kad būs landscape bilde
@@ -41,7 +41,7 @@ const CATEGORIES = [
     key:   'emotional',
     num:   '02',
     name:  'Emotional',
-    sub:   'Emociju pasaule',
+    sub:   'EMOCIJU PASAULE',
     bg:    '#1a0a2e',
     image:   'images/emotional.png',
     // bgImage: 'images/emotional-bg.png',  // atkomentet kad būs landscape bilde
@@ -58,7 +58,7 @@ const CATEGORIES = [
     key:   'intellectual',
     num:   '03',
     name:  'Intellectual',
-    sub:   'Prāta attīstība',
+    sub:   'PRĀTA ATTĪSTĪBA',
     bg:    '#071a0f',
     image:   'images/intellectual.png',
     // bgImage: 'images/intellectual-bg.png', // atkomentet kad būs landscape bilde
@@ -75,7 +75,7 @@ const CATEGORIES = [
     key:   'physical',
     num:   '04',
     name:  'Physical',
-    sub:   'Ķermeņa iepazīšana',
+    sub:   'ĶERMEŅA IEPAZĪŠANA',
     bg:    '#1c0808',
     image:   'images/physical.png',
     // bgImage: 'images/physical-bg.png',  // atkomentet kad būs landscape bilde

@@ -366,7 +366,7 @@ function goHome() {
 
 // ── Populate category screen ──
 function populateCatScreen(cat) {
-  document.getElementById('catEyebrow').textContent = cat.num + ' — Human Upgrade';
+  document.getElementById('catEyebrow').textContent = cat.num + ' — HUMAN UPGRADE';
   document.getElementById('catTitleLarge').textContent = cat.name;
   document.getElementById('catDescLine').textContent = cat.sub;
 
@@ -503,17 +503,50 @@ function spawnParticles() {
   });
 }
 
-// ── Preload card images for smooth portal transitions ──
+// ── Preload ALL images — returns a Promise that resolves when done ──
 function preloadImages() {
+  const promises = [];
+
   CATEGORIES.forEach(cat => {
     if (cat.image) {
-      const img = new Image();
-      img.src = cat.image;
+      promises.push(new Promise((resolve) => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve; // don't block on missing images
+        img.src = cat.image;
+      }));
     }
     if (cat.bgImage) {
-      const bg = new Image();
-      bg.src = cat.bgImage;
+      promises.push(new Promise((resolve) => {
+        const bg = new Image();
+        bg.onload = resolve;
+        bg.onerror = resolve;
+        bg.src = cat.bgImage;
+      }));
     }
+  });
+
+  return Promise.all(promises);
+}
+
+// ── Loading screen — wait for images + fonts, then reveal ──
+function initLoader() {
+  const loader = document.getElementById('loaderScreen');
+  const minTime = 1500; // minimum display time (ms) — let the animation be seen
+  const start = Date.now();
+
+  // Wait for: images + fonts + minimum time
+  const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
+
+  Promise.all([preloadImages(), fontsReady]).then(() => {
+    const elapsed = Date.now() - start;
+    const remaining = Math.max(0, minTime - elapsed);
+
+    setTimeout(() => {
+      loader.classList.add('fade-out');
+      // Remove from DOM after fade completes
+      setTimeout(() => loader.remove(), 1100);
+    }, remaining);
   });
 }
 
@@ -567,5 +600,5 @@ function spawnAmbientDust() {
 buildCards();
 spawnParticles();
 spawnAmbientDust();
-preloadImages();
+initLoader();
 document.getElementById('backBtn').addEventListener('click', goHome);
