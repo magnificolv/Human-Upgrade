@@ -175,6 +175,11 @@ function openCat(key, cardEl) {
   backdrop.classList.add('active');
   document.querySelector('.home-wrap').classList.add('fading-out');
 
+  // Parallax: dust layer zooms with the portal for depth
+  const ambientDust = document.getElementById('ambientDust');
+  ambientDust.classList.remove('settled');
+  ambientDust.classList.add('zooming');
+
   // ─── 6a. Pre-set bgFixed image (hidden) so it's ready for crossfade ───
   const bgFixed = document.getElementById('catBgFixed');
   const bgSrc = cat.bgImage || cat.image;
@@ -250,24 +255,28 @@ function openCat(key, cardEl) {
     activePortalClone = null;
     catScreen.classList.add('visible');
 
+    // Parallax: settle dust to slightly zoomed state
+    ambientDust.classList.remove('zooming');
+    ambientDust.classList.add('settled');
+
     // Remove clone
     setTimeout(() => clone.remove(), 400);
 
-    // Stagger bubble pop-in
+    // Stagger bubble bloom — slow, one by one
     const subCards = catScreen.querySelectorAll('.sub-card');
-    const baseDelay = 0.8;
-    const stagger = 0.12;
+    const baseDelay = 0.6;
+    const stagger = 0.2; // more time between each bloom
     subCards.forEach((sc, i) => {
       sc.style.setProperty('--reveal-delay', (baseDelay + i * stagger) + 's');
       sc.classList.add('sub-card-in');
 
-      // Add floating class after pop-in completes
-      const popDone = (baseDelay + i * stagger + 0.7) * 1000;
-      setTimeout(() => sc.classList.add('floating'), popDone);
+      // Add floating class after bloom completes
+      const bloomDone = (baseDelay + i * stagger + 1.1) * 1000;
+      setTimeout(() => sc.classList.add('floating'), bloomDone);
     });
 
     // Clean up
-    const totalAnimTime = (baseDelay + subCards.length * stagger + 0.9) * 1000;
+    const totalAnimTime = (baseDelay + subCards.length * stagger + 1.3) * 1000;
     setTimeout(() => {
       backdrop.remove();
       document.getElementById('home').classList.add('off');
@@ -307,6 +316,10 @@ function goHome() {
 
     // Clear ambient particles
     document.getElementById('catParticles').innerHTML = '';
+
+    // Reset dust parallax
+    const ambientDust = document.getElementById('ambientDust');
+    ambientDust.classList.remove('zooming', 'settled');
 
     // Clear fixed background layer
     const bgFixed = document.getElementById('catBgFixed');
@@ -499,8 +512,55 @@ function preloadImages() {
   });
 }
 
+// ── Persistent ambient dust — spawned once, runs forever ──
+function spawnAmbientDust() {
+  const container = document.getElementById('ambientDust');
+  const count = 35;
+
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+
+    // Mix: mostly dim white, some brighter, some gold
+    const roll = Math.random();
+    if (roll > 0.85) {
+      p.className = 'ad ad-gold';
+    } else if (roll > 0.5) {
+      p.className = 'ad ad-dim';
+    } else {
+      p.className = 'ad';
+    }
+
+    // Size: tiny to small
+    const size = 1 + Math.random() * 2.5;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+
+    // Random horizontal start
+    p.style.left = (Math.random() * 100) + '%';
+    // Start scattered across full height (not just bottom)
+    p.style.bottom = (-20 - Math.random() * 10) + '%';
+
+    // Slow, meditative pace — 15-35 seconds to cross screen
+    const duration = 15 + Math.random() * 20;
+    p.style.animationDuration = duration + 's';
+    // Stagger so they're spread across the cycle from the start
+    p.style.animationDelay = (Math.random() * duration) + 's';
+
+    // Gentle horizontal drift
+    const drift = -30 + Math.random() * 60;
+    p.style.setProperty('--ad-drift', drift + 'px');
+
+    // Vary peak opacity per particle
+    const peak = 0.3 + Math.random() * 0.5;
+    p.style.setProperty('--ad-peak', peak);
+
+    container.appendChild(p);
+  }
+}
+
 // ── Init ──
 buildCards();
 spawnParticles();
+spawnAmbientDust();
 preloadImages();
 document.getElementById('backBtn').addEventListener('click', goHome);
