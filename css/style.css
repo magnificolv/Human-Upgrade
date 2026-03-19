@@ -122,6 +122,16 @@ body {
   50%      { opacity: 0.9; }
 }
 
+/* ── GLSL SHADER CANVAS — flowing fluid + touch ripples (GPU-rendered) ── */
+.shader-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1; /* below screens but above body bg */
+  pointer-events: none;
+  will-change: contents;
+  contain: strict;
+}
+
 /* ── PERSISTENT AMBIENT DUST — global overlay, never stops ── */
 .ambient-dust {
   position: fixed;

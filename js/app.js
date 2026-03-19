@@ -175,6 +175,12 @@ function openCat(key, cardEl) {
   backdrop.classList.add('active');
   document.querySelector('.home-wrap').classList.add('fading-out');
 
+  // Shader tint: match category color
+  if (window.shaderLayer && window.shaderTints) {
+    const t = window.shaderTints[cat.key] || [1, 1, 1];
+    window.shaderLayer.setTint(t[0], t[1], t[2]);
+  }
+
   // Parallax: dust layer zooms with the portal for depth
   const ambientDust = document.getElementById('ambientDust');
   ambientDust.classList.remove('settled');
@@ -328,6 +334,11 @@ function goHome() {
 
     // Clear ambient particles
     document.getElementById('catParticles').innerHTML = '';
+
+    // Reset shader tint to neutral
+    if (window.shaderLayer) {
+      window.shaderLayer.setTint(1, 1, 1);
+    }
 
     // Clear fixed background layer fully
     bgFixed.style.transition = '';
