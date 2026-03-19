@@ -495,6 +495,12 @@ body::before {
   transition: opacity 0.6s ease;
   opacity: 0;
 }
+/* Kill card particle animations during zoom to prevent jitter */
+.home-wrap.fading-out .card-particles .p {
+  animation-play-state: paused;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease;
+}
 
 /* ══════════════════════════════════════════
    CATEGORY SCREEN — OVERLAY ON PORTAL
@@ -531,15 +537,15 @@ body::before {
 /* No gradient overlay — let the image shine through fully.
    Text readability handled by text-shadow glow + glass sub-cards. */
 
-/* Hero section — large immersive zone over the background image */
+/* Hero section — over the background image, left-aligned on mobile */
 .cat-hero {
   position: relative;
   z-index: 1;
-  min-height: 45vh;
+  min-height: 38vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 3rem 2.5rem 2rem;
+  padding: 3rem 2rem 1.5rem;
   overflow: hidden;
 }
 
@@ -568,7 +574,8 @@ body::before {
 /* (grid layout defined below in SUB-CARDS section) */
 
 .back-btn {
-  position: absolute; top: 1.5rem; left: 1.5rem;
+  position: fixed; top: 1.2rem; left: 1.2rem;
+  z-index: 1020; /* above catScreen (1010) */
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 40px;
@@ -576,13 +583,13 @@ body::before {
   font-family: 'Jost', sans-serif;
   font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
   cursor: pointer; padding: 8px 18px;
-  z-index: 2;
   opacity: 0;
   transform: translateX(-20px);
   transition: background 0.25s, color 0.25s, border-color 0.25s, opacity 0.5s ease, transform 0.5s ease;
   backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
   box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  pointer-events: auto;
 }
 #catScreen.visible .back-btn {
   opacity: 1;
@@ -602,9 +609,7 @@ body::before {
   margin-bottom: 10px;
   transform: translateY(20px);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  text-shadow:
-    0 1px 2px rgba(0,0,0,0.8),
-    0 0 8px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5);
 }
 #catScreen.visible .cat-eyebrow {
   opacity: 0.9;
@@ -621,9 +626,8 @@ body::before {
   transform: translateY(30px);
   transition: opacity 0.4s ease, transform 0.4s ease;
   text-shadow:
-    0 1px 3px rgba(0,0,0,0.9),
-    0 0 10px rgba(0,0,0,0.7),
-    0 0 25px rgba(0,0,0,0.4);
+    0 1px 2px rgba(0,0,0,0.7),
+    0 0 6px rgba(0,0,0,0.4);
 }
 #catScreen.visible .cat-title-large {
   opacity: 1;
@@ -634,13 +638,11 @@ body::before {
 .cat-desc-line {
   font-size: 13px; color: var(--gold2);
   letter-spacing: 3px; text-transform: uppercase;
-  font-weight: 200;
+  font-weight: 300;
   opacity: 0;
   transform: translateY(15px);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  text-shadow:
-    0 1px 2px rgba(0,0,0,0.8),
-    0 0 8px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.6);
 }
 #catScreen.visible .cat-desc-line {
   opacity: 0.7;
@@ -663,70 +665,59 @@ body::before {
   transition: width 1s cubic-bezier(0.25,0.46,0.45,0.94) 1s, opacity 0.7s ease 1s;
 }
 
-/* ── SUB-CARDS — ORBITAL BUBBLES ── */
+/* ── SUB-CARDS — FLOATING BUBBLES ── */
 .sub-grid {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 52vh;
-  min-height: 340px;
-  max-height: 460px;
+  height: 55vh;
+  min-height: 320px;
   /* No background — full image shows through */
-}
-
-/* Faint orbit ring decoration */
-.sub-grid::before {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 260px; height: 260px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 0.5px solid rgba(255,255,255,0.04);
-  pointer-events: none;
 }
 
 .sub-card {
   position: absolute;
-  /* JS sets --bx, --by for orbital position */
+  /* JS sets --bx, --by as offsets from center */
   left: calc(50% + var(--bx, 0px));
   top:  calc(50% + var(--by, 0px));
   transform: translate(-50%, -50%) scale(0);
   opacity: 0;
 
   /* Bubble shape */
-  width: 86px; height: 86px;
+  width: var(--bubble-size, 110px);
+  height: var(--bubble-size, 110px);
   border-radius: 50%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   text-align: center;
   cursor: pointer;
 
-  /* Glass bubble */
+  /* Glass bubble — no border, pure glow */
   background: rgba(255,255,255,0.04) !important;
-  border: 1px solid rgba(255,255,255,0.10);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: none;
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
   box-shadow:
-    0 4px 24px rgba(0,0,0,0.2),
+    0 0 25px var(--bubble-glow, rgba(255,255,255,0.08)),
+    0 0 50px var(--bubble-glow, rgba(255,255,255,0.04)),
     inset 0 1px 0 rgba(255,255,255,0.10),
-    inset 0 -1px 0 rgba(255,255,255,0.02);
+    inset 0 -1px 0 rgba(255,255,255,0.03);
 
-  transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+  transition: box-shadow 0.4s, background 0.4s;
 }
 
 /* Bubble shine highlight */
 .sub-card::before {
   content: '';
   position: absolute;
-  top: 8px; left: 14px;
-  width: 30px; height: 14px;
+  top: 10%; left: 18%;
+  width: 35%; height: 18%;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255,255,255,0.12), transparent);
+  background: radial-gradient(ellipse, rgba(255,255,255,0.10), transparent);
   pointer-events: none;
 }
 
-/* ── Reveal animation — pop in from center ── */
+/* ── Reveal animation — pop in from nothing ── */
 @keyframes bubblePop {
   0% {
     opacity: 0;
@@ -734,7 +725,7 @@ body::before {
   }
   60% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.08);
+    transform: translate(-50%, -50%) scale(1.06);
   }
   100% {
     opacity: 1;
@@ -743,19 +734,19 @@ body::before {
 }
 
 .sub-card.sub-card-in {
-  animation: bubblePop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: bubblePop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: var(--reveal-delay, 0s);
 }
 
-/* After pop-in, add gentle floating */
+/* After pop-in, gentle floating */
 .sub-card.sub-card-in.floating {
-  animation: bubblePop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+  animation: bubblePop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
              bubbleFloat var(--float-dur, 4s) ease-in-out var(--float-delay, 1.5s) infinite alternate;
 }
 
 @keyframes bubbleFloat {
   0%   { margin-top: 0; }
-  100% { margin-top: var(--float-y, -6px); }
+  100% { margin-top: var(--float-y, -8px); }
 }
 
 /* Exit */
@@ -770,31 +761,31 @@ body::before {
   }
 }
 .sub-card.sub-card-out {
-  animation: bubbleExit 0.3s ease-in forwards;
+  animation: bubbleExit 0.35s ease-in forwards;
   animation-delay: var(--exit-delay, 0s);
 }
 
-/* Hover — glow up */
+/* Hover — glow intensifies */
 .sub-card:hover {
-  border-color: rgba(255,255,255,0.22);
   background: rgba(255,255,255,0.08) !important;
   box-shadow:
-    0 8px 32px rgba(0,0,0,0.3),
+    0 0 35px var(--bubble-glow, rgba(255,255,255,0.12)),
+    0 0 70px var(--bubble-glow, rgba(255,255,255,0.06)),
     inset 0 1px 0 rgba(255,255,255,0.15),
-    0 0 20px rgba(255,255,255,0.04);
+    inset 0 -1px 0 rgba(255,255,255,0.04);
 }
 
 /* ── Bubble content ── */
-.sub-header { display: none; } /* not used in bubble mode */
+.sub-header { display: none; }
 
 .sub-icon {
-  font-size: 22px; display: block; opacity: 0.9;
+  font-size: 28px; display: block; opacity: 0.9;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
   line-height: 1;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .sub-icon-img {
-  width: 28px; height: 28px;
+  width: 36px; height: 36px;
   object-fit: contain;
   border-radius: 50%;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
@@ -802,21 +793,60 @@ body::before {
 
 .sub-title {
   font-family: 'Jost', sans-serif;
-  font-weight: 300; font-size: 8.5px;
-  color: rgba(255,255,255,0.8);
-  line-height: 1.15;
+  font-weight: 300; font-size: 10px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.2;
   letter-spacing: 0.3px;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-  max-width: 68px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  max-width: 90px;
+  padding: 0 6px;
 }
 
 .sub-text {
-  display: none; /* hidden in bubble mode — keep clean */
+  display: none; /* hidden in bubble mode */
+}
+
+/* ── AMBIENT PARTICLES — full-screen living dust on category screen ── */
+.cat-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+#catScreen.visible .cat-particles {
+  opacity: 1;
+  transition: opacity 1.5s ease 1s;
+}
+
+.cat-particles .cp {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  animation: catParticleFloat linear infinite;
+}
+.cat-particles .cp-gold {
+  background: rgba(200,169,110,0.5);
+  box-shadow: 0 0 4px rgba(200,169,110,0.3);
+}
+.cat-particles .cp-glow {
+  background: var(--cat-glow-color, rgba(255,255,255,0.3));
+  box-shadow: 0 0 8px var(--cat-glow-color, rgba(255,255,255,0.2));
+}
+
+@keyframes catParticleFloat {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  6% { opacity: 1; }
+  80% { opacity: 0.9; }
+  100% {
+    transform: translateY(calc(-100vh - 50px)) translateX(var(--cp-drift, 30px)) scale(0.15);
+    opacity: 0;
+  }
 }
 
 .scroll-hint {

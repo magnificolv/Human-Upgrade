@@ -158,6 +158,7 @@ function openCat(key, cardEl) {
 
   // ─── 5. Prepare category content (overlay is hidden via visibility) ───
   populateCatScreen(cat);
+  spawnCatParticles(cat.key);
   const catScreen = document.getElementById('catScreen');
   catScreen.classList.remove('visible');
   catScreen.scrollTop = 0;
@@ -304,6 +305,9 @@ function goHome() {
   setTimeout(() => {
     catScreen.scrollTop = 0;
 
+    // Clear ambient particles
+    document.getElementById('catParticles').innerHTML = '';
+
     // Clear fixed background layer
     const bgFixed = document.getElementById('catBgFixed');
     bgFixed.style.transition = '';
@@ -367,8 +371,8 @@ function populateCatScreen(cat) {
   grid.innerHTML = '';
 
   const count = cat.items.length;
-  const radius = 115; // px from center
-  const angleOffset = -90; // start from top (12 o'clock)
+  const radius = 130; // px from center — fits mobile nicely
+  const angleOffset = -90; // start from top
 
   cat.items.forEach((item, i) => {
     const sc = document.createElement('div');
@@ -382,10 +386,24 @@ function populateCatScreen(cat) {
     sc.style.setProperty('--bx', bx + 'px');
     sc.style.setProperty('--by', by + 'px');
 
+    // Vary sizes slightly
+    const sizes = [110, 105, 115, 108, 112, 100];
+    sc.style.setProperty('--bubble-size', (sizes[i % sizes.length]) + 'px');
+
+    // Category-themed glow color
+    const glowColors = {
+      spiritual:    'rgba(60,120,220,0.25)',
+      emotional:    'rgba(160,80,220,0.25)',
+      intellectual: 'rgba(50,180,100,0.25)',
+      physical:     'rgba(200,60,60,0.25)'
+    };
+    const glow = glowColors[cat.key] || 'rgba(255,255,255,0.1)';
+    sc.style.setProperty('--bubble-glow', glow);
+
     // ── Floating animation params (each bubble unique) ──
-    sc.style.setProperty('--float-dur', (3.5 + Math.random() * 2.5) + 's');
+    sc.style.setProperty('--float-dur', (4 + Math.random() * 3) + 's');
     sc.style.setProperty('--float-delay', (2 + i * 0.3) + 's');
-    sc.style.setProperty('--float-y', (-4 - Math.random() * 5) + 'px');
+    sc.style.setProperty('--float-y', (-5 - Math.random() * 8) + 'px');
 
     // Icon can be emoji OR image path (starts with "images/")
     const iconHTML = item.icon && item.icon.startsWith('images/')
@@ -396,6 +414,54 @@ function populateCatScreen(cat) {
       <div class="sub-title">${item.title}</div>`;
     grid.appendChild(sc);
   });
+}
+
+// ── Ambient particles for category screen (infinite loop) ──
+function spawnCatParticles(catKey) {
+  const container = document.getElementById('catParticles');
+  container.innerHTML = '';
+
+  // Category glow colors for some particles
+  const glowColors = {
+    spiritual:    'rgba(80,140,240,0.2)',
+    emotional:    'rgba(180,100,240,0.2)',
+    intellectual: 'rgba(70,200,120,0.2)',
+    physical:     'rgba(220,80,80,0.2)'
+  };
+  container.style.setProperty('--cat-glow-color', glowColors[catKey] || 'rgba(255,255,255,0.15)');
+
+  const count = 45; // dense ambient field
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+
+    // Mix of types: plain white, gold, and category-colored
+    const roll = Math.random();
+    if (roll > 0.75) {
+      p.className = 'cp cp-gold';
+    } else if (roll > 0.5) {
+      p.className = 'cp cp-glow';
+    } else {
+      p.className = 'cp';
+    }
+
+    // Bigger particles — mix of tiny sparkles and larger orbs
+    const size = 1.5 + Math.random() * 4.5; // up to 6px
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.bottom = (-10 - Math.random() * 30) + '%';
+
+    // Each particle has unique timing — staggered start creates endless stream
+    const duration = 8 + Math.random() * 14; // 8-22s — slightly faster
+    p.style.animationDuration = duration + 's';
+    p.style.animationDelay = (Math.random() * duration) + 's';
+
+    // Horizontal drift — some go left, some right
+    const drift = -50 + Math.random() * 100;
+    p.style.setProperty('--cp-drift', drift + 'px');
+
+    container.appendChild(p);
+  }
 }
 
 // ── Floating particles for cards ──
