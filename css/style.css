@@ -133,6 +133,8 @@ body {
   transform-origin: center center;
   will-change: transform;
   transform: translateZ(0);
+  /* Containment: this layer is completely isolated from layout/paint of everything below */
+  contain: strict;
 }
 /* Parallax: during portal zoom, dust layer scales up slightly — depth illusion */
 .ambient-dust.zooming {
@@ -420,6 +422,7 @@ body::before {
   z-index: 1; overflow: hidden;
   border-radius: 18px;
   pointer-events: none;
+  contain: strict;
 }
 .card-particles .p {
   position: absolute;
@@ -500,6 +503,8 @@ body::before {
   object-position: center;
   image-rendering: -webkit-optimize-contrast; /* sharper on WebKit */
   transition: transform 0.6s cubic-bezier(.22,.68,0,1.15);
+  will-change: transform;
+  transform: translateZ(0);
 }
 .card.has-image:hover .card-bg-img img {
   transform: scale(1.34);
@@ -558,8 +563,9 @@ body::before {
   z-index: 1000;
   overflow: hidden;
   pointer-events: none;
-  will-change: transform, border-radius;
+  will-change: transform, border-radius, opacity;
   transform-origin: center center;
+  transform: translateZ(0);
   border-radius: 18px;
 }
 .portal-clone img {
@@ -633,6 +639,8 @@ body::before {
   background: rgba(200,169,110,0.5);
   opacity: 0;
   animation: dustFloat 2.5s ease-out forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 @keyframes dustFloat {
   0%   { transform: translateY(0) scale(0); opacity: 0; }
@@ -648,6 +656,8 @@ body::before {
   -webkit-backdrop-filter: blur(0px);
   transition: background 0.7s ease, backdrop-filter 0.7s ease, -webkit-backdrop-filter 0.7s ease;
   pointer-events: none;
+  will-change: backdrop-filter, background;
+  transform: translateZ(0);
 }
 .zoom-backdrop.active {
   background: rgba(6,6,12,0.6);
@@ -656,6 +666,10 @@ body::before {
 }
 
 /* Home screen fade-out */
+.home-wrap {
+  will-change: opacity;
+  transform: translateZ(0);
+}
 .home-wrap.fading-out {
   transition: opacity 0.6s ease;
   opacity: 0;
@@ -767,6 +781,7 @@ body::before {
   transform: translateY(20px);
   transition: opacity 0.4s ease, transform 0.4s ease;
   text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  will-change: transform, opacity;
 }
 #catScreen.visible .cat-eyebrow {
   opacity: 0.9;
@@ -790,6 +805,7 @@ body::before {
     0 0 40px rgba(0,0,0,0.2);
   position: relative;
   display: inline-block;
+  will-change: transform, opacity;
 }
 #catScreen.visible .cat-title-large {
   opacity: 1;
@@ -826,6 +842,7 @@ body::before {
   transition: opacity 0.4s ease, transform 0.4s ease;
   text-shadow: 0 1px 3px rgba(0,0,0,0.7);
   margin-top: 14px;
+  will-change: transform, opacity;
 }
 #catScreen.visible .cat-desc-line {
   opacity: 0.7;
@@ -952,30 +969,49 @@ body::before {
   animation-delay: var(--reveal-delay, 0s);
 }
 
-/* After bloom, gentle floating */
+/* After bloom, gentle floating + breathing */
 .sub-card.sub-card-in.floating {
-  animation: bubbleBloom 2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-             bubbleFloat var(--float-dur, 4s) ease-in-out var(--float-delay, 1.5s) infinite alternate;
+  animation:
+    bubbleBloom 2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    bubbleFloat var(--float-dur, 4s) ease-in-out var(--float-delay, 1.5s) infinite alternate,
+    bubbleBreathe var(--breathe-dur, 5s) ease-in-out var(--breathe-delay, 0s) infinite alternate;
 }
 
+/* Gentle vertical drift — GPU-only, no layout reflow.
+   Uses transform (inherits translate from bubbleBloom's final state).
+   bubbleFloat is listed AFTER bubbleBloom in animation list, so it takes over transform. */
 @keyframes bubbleFloat {
-  0%   { margin-top: 0; }
-  100% { margin-top: var(--float-y, -8px); }
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, calc(-50% + var(--float-y, -8px))) scale(1); }
 }
 
-/* Exit */
+/* Breathing — subtle brightness + blur pulsation, organic and alive.
+   Safe to use filter here because .floating is only added AFTER bubbleBloom ends. */
+@keyframes bubbleBreathe {
+  0%   { filter: brightness(1) blur(0px); }
+  50%  { filter: brightness(1.08) blur(0.4px); }
+  100% { filter: brightness(0.96) blur(0px); }
+}
+
+/* Exit — cinematic dissolve, not a snap */
 @keyframes bubbleExit {
   0% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+    filter: blur(0px);
+  }
+  40% {
+    opacity: 0.6;
+    filter: blur(3px);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.3);
+    transform: translate(-50%, -50%) scale(0.5);
+    filter: blur(10px);
   }
 }
 .sub-card.sub-card-out {
-  animation: bubbleExit 0.35s ease-in forwards;
+  animation: bubbleExit 0.7s cubic-bezier(0.4, 0, 0.8, 0.3) forwards;
   animation-delay: var(--exit-delay, 0s);
 }
 
@@ -1036,6 +1072,9 @@ body::before {
   pointer-events: none;
   opacity: 0;
   transition: opacity 1.5s ease;
+  will-change: opacity;
+  transform: translateZ(0);
+  contain: strict;
 }
 #catScreen.visible .cat-particles {
   opacity: 1;

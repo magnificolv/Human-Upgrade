@@ -286,7 +286,7 @@ function openCat(key, cardEl) {
   }, 1500); // after crossfade (0.9s starting at 0.9s = done ~1.8s, show at 1.5s for overlap)
 }
 
-// ── REVERSE — GO HOME ──
+// ── REVERSE — GO HOME (cinematic) ──
 function goHome() {
   if (isAnimating) return;
   isAnimating = true;
@@ -294,35 +294,42 @@ function goHome() {
   const catScreen = document.getElementById('catScreen');
   const homeScreen = document.getElementById('home');
   const homeWrap = document.querySelector('.home-wrap');
+  const bgFixed = document.getElementById('catBgFixed');
+  const ambientDust = document.getElementById('ambientDust');
 
-  // 1. Fade out bubbles in reverse with exit animation
+  // ─── 1. Dissolve bubbles — staggered blur+fade, reverse order ───
   const subCards = [...catScreen.querySelectorAll('.sub-card')].reverse();
+  const exitStagger = 0.1; // generous gap between each dissolve
   subCards.forEach((sc, i) => {
-    sc.classList.remove('sub-card-in');
-    sc.classList.remove('floating');
-    sc.style.setProperty('--exit-delay', (i * 0.06) + 's');
+    sc.classList.remove('sub-card-in', 'floating');
+    sc.style.setProperty('--exit-delay', (i * exitStagger) + 's');
     sc.classList.add('sub-card-out');
   });
 
-  // 2. After sub-cards gone, fade out hero text + whole overlay
-  const subFadeTime = subCards.length * 70 + 350 + 200;
+  const bubblesGoneTime = subCards.length * (exitStagger * 1000) + 700 + 200;
+
+  // ─── 2. Start fading hero text while last bubbles dissolve ───
   setTimeout(() => {
     catScreen.classList.remove('visible');
-  }, subFadeTime);
+  }, bubblesGoneTime - 300); // overlap slightly for smooth feel
 
-  // 3. After catScreen is hidden, restore home screen
+  // ─── 3. Crossfade bgFixed to dark — smooth visual bridge ───
+  setTimeout(() => {
+    bgFixed.style.transition = 'opacity 0.8s ease';
+    bgFixed.style.opacity = '0';
+
+    // Reverse dust parallax — settle back to normal
+    ambientDust.classList.remove('zooming', 'settled');
+  }, bubblesGoneTime);
+
+  // ─── 4. After everything faded, restore home screen ───
   setTimeout(() => {
     catScreen.scrollTop = 0;
 
     // Clear ambient particles
     document.getElementById('catParticles').innerHTML = '';
 
-    // Reset dust parallax
-    const ambientDust = document.getElementById('ambientDust');
-    ambientDust.classList.remove('zooming', 'settled');
-
-    // Clear fixed background layer
-    const bgFixed = document.getElementById('catBgFixed');
+    // Clear fixed background layer fully
     bgFixed.style.transition = '';
     bgFixed.style.opacity = '';
     bgFixed.style.backgroundImage = '';
@@ -330,26 +337,27 @@ function goHome() {
 
     homeScreen.classList.remove('off');
 
-    // Restore the card that was hidden
+    // Restore the card + home screen with smooth fade
     if (lastOpenedCard) {
       lastOpenedCard.style.opacity = '0';
-      lastOpenedCard.style.transform = 'scale(0.85)';
-      lastOpenedCard.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)';
-
-      // Remove fading-out class on home
-      homeWrap.classList.remove('fading-out');
-      homeWrap.style.opacity = '1';
-      homeWrap.style.transition = 'opacity 0.5s ease';
-
-      requestAnimationFrame(() => {
-        lastOpenedCard.style.opacity = '1';
-        lastOpenedCard.style.transform = '';
-      });
-    } else {
-      homeWrap.classList.remove('fading-out');
-      homeWrap.style.opacity = '1';
+      lastOpenedCard.style.transform = 'scale(0.92)';
+      lastOpenedCard.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94)';
     }
 
+    homeWrap.classList.remove('fading-out');
+    homeWrap.style.opacity = '0';
+    homeWrap.style.transition = 'opacity 0.7s ease';
+
+    // Trigger fade-in on next frame
+    requestAnimationFrame(() => {
+      homeWrap.style.opacity = '1';
+      if (lastOpenedCard) {
+        lastOpenedCard.style.opacity = '1';
+        lastOpenedCard.style.transform = '';
+      }
+    });
+
+    // Clean up inline styles after transitions complete
     setTimeout(() => {
       homeWrap.style.transition = '';
       homeWrap.style.opacity = '';
@@ -359,9 +367,9 @@ function goHome() {
       }
       isAnimating = false;
       window.scrollTo({ top: 0, behavior: 'instant' });
-    }, 650);
+    }, 900);
 
-  }, subFadeTime + 500);
+  }, bubblesGoneTime + 800); // wait for bgFixed fade + hero text fade
 }
 
 // ── Populate category screen ──
@@ -422,6 +430,10 @@ function populateCatScreen(cat) {
     sc.style.setProperty('--float-dur', (4 + Math.random() * 3) + 's');
     sc.style.setProperty('--float-delay', (2 + i * 0.3) + 's');
     sc.style.setProperty('--float-y', (-5 - Math.random() * 8) + 'px');
+
+    // ── Breathing animation params — desynchronized for organic feel ──
+    sc.style.setProperty('--breathe-dur', (4 + Math.random() * 4) + 's');
+    sc.style.setProperty('--breathe-delay', (Math.random() * 3) + 's');
 
     // Icon can be emoji OR image path (starts with "images/")
     const iconHTML = item.icon && item.icon.startsWith('images/')
