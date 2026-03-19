@@ -390,12 +390,12 @@ function populateCatScreen(cat) {
     const sizes = [110, 105, 115, 108, 112, 100];
     sc.style.setProperty('--bubble-size', (sizes[i % sizes.length]) + 'px');
 
-    // Category-themed glow color
+    // Category-themed glow color — visible but soft
     const glowColors = {
-      spiritual:    'rgba(60,120,220,0.25)',
-      emotional:    'rgba(160,80,220,0.25)',
-      intellectual: 'rgba(50,180,100,0.25)',
-      physical:     'rgba(200,60,60,0.25)'
+      spiritual:    'rgba(60,120,220,0.35)',
+      emotional:    'rgba(160,80,220,0.35)',
+      intellectual: 'rgba(50,180,100,0.35)',
+      physical:     'rgba(200,60,60,0.35)'
     };
     const glow = glowColors[cat.key] || 'rgba(255,255,255,0.1)';
     sc.style.setProperty('--bubble-glow', glow);
