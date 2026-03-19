@@ -262,21 +262,21 @@ function openCat(key, cardEl) {
     // Remove clone
     setTimeout(() => clone.remove(), 400);
 
-    // Stagger bubble bloom — slow, one by one
+    // Stagger bubble bloom — cinematic, one by one
     const subCards = catScreen.querySelectorAll('.sub-card');
-    const baseDelay = 0.6;
-    const stagger = 0.2; // more time between each bloom
+    const baseDelay = 0.8;
+    const stagger = 0.35; // generous gap between each bloom
     subCards.forEach((sc, i) => {
       sc.style.setProperty('--reveal-delay', (baseDelay + i * stagger) + 's');
       sc.classList.add('sub-card-in');
 
-      // Add floating class after bloom completes
-      const bloomDone = (baseDelay + i * stagger + 1.1) * 1000;
+      // Add floating class after bloom completes (2s bloom duration)
+      const bloomDone = (baseDelay + i * stagger + 2.0) * 1000;
       setTimeout(() => sc.classList.add('floating'), bloomDone);
     });
 
     // Clean up
-    const totalAnimTime = (baseDelay + subCards.length * stagger + 1.3) * 1000;
+    const totalAnimTime = (baseDelay + subCards.length * stagger + 2.2) * 1000;
     setTimeout(() => {
       backdrop.remove();
       document.getElementById('home').classList.add('off');
@@ -403,15 +403,20 @@ function populateCatScreen(cat) {
     const sizes = [110, 105, 115, 108, 112, 100];
     sc.style.setProperty('--bubble-size', (sizes[i % sizes.length]) + 'px');
 
-    // Category-themed glow color — visible but soft
+    // Category-themed neon glow — bright + dim versions
     const glowColors = {
-      spiritual:    'rgba(60,120,220,0.35)',
-      emotional:    'rgba(160,80,220,0.35)',
-      intellectual: 'rgba(50,180,100,0.35)',
-      physical:     'rgba(200,60,60,0.35)'
+      spiritual:    { bright: 'rgba(60,120,220,0.35)',  dim: 'rgba(60,120,220,0.12)' },
+      emotional:    { bright: 'rgba(160,80,220,0.35)',  dim: 'rgba(160,80,220,0.12)' },
+      intellectual: { bright: 'rgba(50,180,100,0.35)',  dim: 'rgba(50,180,100,0.12)' },
+      physical:     { bright: 'rgba(200,60,60,0.35)',   dim: 'rgba(200,60,60,0.12)' }
     };
-    const glow = glowColors[cat.key] || 'rgba(255,255,255,0.1)';
-    sc.style.setProperty('--bubble-glow', glow);
+    const colors = glowColors[cat.key] || { bright: 'rgba(255,255,255,0.1)', dim: 'rgba(255,255,255,0.04)' };
+    sc.style.setProperty('--bubble-glow', colors.bright);
+    sc.style.setProperty('--bubble-glow-dim', colors.dim);
+
+    // ── Unique pulse timing per bubble — asynchronous, organic ──
+    sc.style.setProperty('--pulse-dur', (3 + Math.random() * 4) + 's');
+    sc.style.setProperty('--pulse-delay', (Math.random() * 3) + 's');
 
     // ── Floating animation params (each bubble unique) ──
     sc.style.setProperty('--float-dur', (4 + Math.random() * 3) + 's');
