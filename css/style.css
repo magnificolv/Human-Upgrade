@@ -728,15 +728,16 @@ body::before {
 /* No gradient overlay — let the image shine through fully.
    Text readability handled by text-shadow glow + glass sub-cards. */
 
-/* Hero section — over the background image, left-aligned on mobile */
+/* Hero section — over the background image, left-aligned on mobile.
+   Positioned near the top to stay above large artwork (brain, heart, feather). */
 .cat-hero {
   position: relative;
   z-index: 1;
-  min-height: 38vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 3rem 2rem 1.5rem;
+  justify-content: flex-start;
+  padding: 4.5rem 2rem 1rem; /* top padding clears back button */
   overflow: hidden;
 }
 
@@ -755,19 +756,19 @@ body::before {
 .back-btn {
   position: fixed; top: 1.2rem; left: 1.2rem;
   z-index: 1020; /* above catScreen (1010) */
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 40px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.5);
   font-family: 'Inter', sans-serif;
   font-size: 11px; letter-spacing: 2.5px;
   cursor: pointer; padding: 8px 18px;
   opacity: 0;
   transform: translateX(-20px);
   transition: background 0.25s, color 0.25s, border-color 0.25s, opacity 0.5s ease, transform 0.5s ease;
-  backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px) saturate(1.2); -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
   pointer-events: auto;
 }
 #catScreen.visible .back-btn {
@@ -790,7 +791,10 @@ body::before {
   margin-bottom: 10px;
   transform: translateY(20px);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-shadow:
+    0 1px 3px rgba(0,0,0,0.9),
+    0 0 10px rgba(0,0,0,0.5),
+    0 0 30px rgba(0,0,0,0.2);
   will-change: transform, opacity;
 }
 #catScreen.visible .cat-eyebrow {
@@ -803,16 +807,18 @@ body::before {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 300;
   font-style: italic;
-  font-size: clamp(3.2rem, 12vw, 5.5rem);
-  letter-spacing: 1px;
-  line-height: 0.95; color: #fff; margin-bottom: 6px;
+  font-size: clamp(3rem, 11vw, 5rem);
+  letter-spacing: 6px; /* premium luxury spacing */
+  line-height: 0.95; color: #fff; margin-bottom: 8px;
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  /* Multi-layer text-shadow — readable on both dark AND light backgrounds */
   text-shadow:
-    0 2px 4px rgba(0,0,0,0.8),
-    0 0 12px rgba(0,0,0,0.5),
-    0 0 40px rgba(0,0,0,0.2);
+    0 2px 4px rgba(0,0,0,0.9),
+    0 0 15px rgba(0,0,0,0.7),
+    0 0 40px rgba(0,0,0,0.4),
+    0 0 80px rgba(0,0,0,0.2);
   position: relative;
   display: inline-block;
   will-change: transform, opacity;
@@ -850,7 +856,10 @@ body::before {
   opacity: 0;
   transform: translateY(15px);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  text-shadow:
+    0 1px 3px rgba(0,0,0,0.9),
+    0 0 10px rgba(0,0,0,0.5),
+    0 0 30px rgba(0,0,0,0.2);
   margin-top: 14px;
   will-change: transform, opacity;
 }
@@ -870,8 +879,9 @@ body::before {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 55vh;
-  min-height: 320px;
+  height: 60vh;
+  min-height: 350px;
+  margin-top: 1rem; /* breathing room between header and bubbles */
   /* No background — full image shows through */
 }
 
